@@ -51,7 +51,7 @@ print("Starting simulation...")
 
 for (i in 1:simObj$duration) {
   tic()
-  print(sprintf("Day: %d", i))
+  print(sprintf("Month: %d", i))
   simObj <- increment_module(simObj)
   simObj <- transmission_module(simObj)
   simObj <- care_stage_module(simObj)
