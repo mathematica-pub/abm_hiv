@@ -49,7 +49,7 @@ simData <- data.frame(list())
 
 print("Starting simulation...")
 
-for (i in 1:3) { #simObj$duration) {
+for (i in 1:simObj$duration) {
   tic()
   print(sprintf("Day: %d", i))
   simObj <- increment_module(simObj)
