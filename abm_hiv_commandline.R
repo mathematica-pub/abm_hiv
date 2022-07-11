@@ -1,3 +1,9 @@
+
+
+args <- commandArgs(trailingOnly = TRUE)
+file_loc_source <- args[1]
+file_loc_input <- args[2]
+
 library(gtools)
 library(ensurer)
 library(truncnorm)
@@ -6,12 +12,10 @@ library(rlang)
 library(readxl)
 library(tidyverse)
 library(tictoc)
-for (fl in list.files("./modules")) {
-  print(fl)
-  source(file.path(".", "modules", fl))
+for (fl in list.files(file_loc_source)) {
+  print(sprintf("%s", fl))
+  source(paste(file_loc_source , fl, sep = "/"))
 }
-
-file_loc_input = "C:/Users/ravij/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/RWHAP_Equity-feat-add_equity_outcomes/inputs_2019/user_inputs_Current_RWHAP - 200K - PrEP.xlsx"
 
 inputObj <- input_module(origin = file_loc_input)
 
@@ -21,9 +25,8 @@ inputObj$valflag  <- FALSE
 
 set.seed(inputObj$seed)
 
-tic()
+print("Initializing population...")
 simObj   <- initialization_module(inputObj)
-toc()
 
 simObj   <- initialize_prep(simObj,
                             origin = file_loc_input)
@@ -43,9 +46,12 @@ simObj$diag_time <- tibble(ID = simObj$popdf %>%
                            event = "initial")
 
 simData <- data.frame(list())
-for (i in 1:simObj$duration) {
+
+print("Starting simulation...")
+
+for (i in 1:3) { #simObj$duration) {
   tic()
-  print(i)
+  print(sprintf("Day: %d", i))
   simObj <- increment_module(simObj)
   simObj <- transmission_module(simObj)
   simObj <- care_stage_module(simObj)
@@ -62,20 +68,35 @@ simDataDisc <- discount_module(simData, simObj$discount)
 simData <- list(notdisc = simData,
                 disc    = simDataDisc)
 
+sprintf("Printing output...")
+
+sprintf("Calibration metrics...")
+
+calibration_output <- simData$notdisc %>%
+  group_by(risk, month) %>%
+  summarise(newinfects_agg = sum(newinfects)) %>%
+  pivot_longer(cols = c(newinfects_agg),
+               names_to = "metric",
+               values_to = "stat") %>%
+  ungroup() %>%
+  rename(subgroup = risk) %>%
+  select(metric, month, subgroup, stat)
+
+
+calibration_output %>% print(n = Inf)
+
+sprintf("Transmission tree...")
+
 trans_tree.df = bind_rows(trans_tree.df %>%
                             mutate(ID2 = as.character(ID2)),
                           simObj$trans_tree %>%
                             mutate(ID1 = as.character(ID1),
                                    ID2 = as.character(ID2)))
 
-#saveRDS(simData, "../results/rw_120months_7_11_22.rds")
-#saveRDS(simObj, "../results/rw_120months_7_11_22_simObj.rds")
+trans_tree.df %>% print(n = Inf)
+#cat(format(as_tibble(trans_tree.df[c(1:5),]))[-c(1L,3L)], sep = "\n")
 
-#write_tsv(trans_tree.df,
-#          file = "../results/rw_120months_7_11_22_trans_tree.tsv",
-#          col_names = FALSE)
+sprintf("Sequence sample times...")
 
-#write_tsv(simObj$diag_time,
-#          file = "../results/rw_120months_7_11_22_diag_time.tsv",
-#          col_names = FALSE)
-
+simObj$diag_time %>% print(n = Inf)
+#cat(format(as_tibble(simObj$diag_time[c(1:5),]))[-c(1L,3L)], sep = "\n")

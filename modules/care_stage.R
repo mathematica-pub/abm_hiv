@@ -100,6 +100,30 @@ care_stage_module <- function(simObj) {
 
   if (simObj$testflag) newPop <- ensure(newPop, all(.$nextStage != "ERROR"))
 
+  diag_time_TEMP <- tibble(ID = newPop %>%
+                             filter(stage == "hiv", nextStage == "diag") %>%
+                             pull(id),
+                           month = simObj$month,
+                           event = "diagnosis")
+  simObj$diag_time = bind_rows(simObj$diag_time,
+                               diag_time_TEMP)
+
+  diag_time_TEMP <- tibble(ID = newPop %>%
+                             filter(stage == "suppress", nextStage == "care") %>%
+                             pull(id),
+                           month = simObj$month,
+                           event = "rebound")
+  simObj$diag_time = bind_rows(simObj$diag_time,
+                               diag_time_TEMP)
+
+  diag_time_TEMP <- tibble(ID = newPop %>%
+                             filter(stage == "left", nextStage == "care") %>%
+                             pull(id),
+                           month = simObj$month,
+                           event = "reengage")
+  simObj$diag_time = bind_rows(simObj$diag_time,
+                               diag_time_TEMP)
+
   if (simObj$valflag) {
 	  newPop <- newPop %>%
 		  mutate(laststage = stage,

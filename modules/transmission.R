@@ -16,7 +16,18 @@ transmission_module <- function(simObj) {
     transmission_module_spread_HIV(simObj, Net_name = "S_nonMSM_Net",
                                    trans_prob = simObj$trans_params$trans_prob_RNA_nonMSM)
 
-  unique_id = unique(c(New_infection_ID_IDU, New_infection_ID_MSM, New_infection_ID_nonMSM))
+  New_infection_tree = bind_rows(bind_rows(New_infection_ID_IDU, New_infection_ID_MSM),
+                                 New_infection_ID_nonMSM) %>%
+    group_by(ID1) %>%
+    slice_sample(n=1) %>%
+    ungroup() %>%
+    mutate(month = simObj$month)
+
+  simObj$trans_tree = bind_rows(simObj$trans_tree,
+                                New_infection_tree)
+
+  #unique_id = unique(c(New_infection_ID_IDU, New_infection_ID_MSM, New_infection_ID_nonMSM))
+  unique_id = New_infection_tree$ID2
 
   if (length(unique_id) > 0) {
 

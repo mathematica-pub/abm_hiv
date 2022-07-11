@@ -35,12 +35,21 @@ transmission_module_spread_HIV <- function(simObj, Net_name, trans_prob) {
     simObj$networks[[Net_name]]$trans_prob <- trans_prob
   }
 
+  if (!is.null(simObj$prep_info)) {
+    simObj$networks[[Net_name]] <- left_join(simObj$networks[[Net_name]],
+                                             simObj$prep_id %>% filter(use == 1) %>% select(id, reduction),
+                                             by = c("ID2" = "id")) %>%
+      mutate(trans_prob = ifelse(!(is.na(reduction)),trans_prob*reduction, trans_prob)) %>%
+      select(-reduction)
+  }
+
   simObj$networks[[Net_name]] <- simObj$networks[[Net_name]] %>%
     mutate(trans_event = runif(nrow(.))<=trans_prob)
 
-  simObj$networks[[Net_name]] %>%
-    filter(trans_event == 1) %>%
-    pull(ID2)
+  return(simObj$networks[[Net_name]] %>%
+           filter(trans_event == 1) %>%
+           select(ID1,ID2))
+
 }
 
 transmission_module_evolve_Net <- function(simObj, Net_name) {
