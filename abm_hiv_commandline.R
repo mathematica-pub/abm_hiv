@@ -83,7 +83,7 @@ calibration_output <- simData$notdisc %>%
   select(metric, month, subgroup, stat)
 
 
-calibration_output %>% print(n = Inf)
+calibration_output %>% as.data.frame() %>% print(quote = FALSE, row.names = FALSE)
 
 sprintf("Transmission tree...")
 
@@ -93,10 +93,14 @@ trans_tree.df = bind_rows(trans_tree.df %>%
                             mutate(ID1 = as.character(ID1),
                                    ID2 = as.character(ID2)))
 
-trans_tree.df %>% print(n = Inf)
+trans_tree.df %>% as.data.frame() %>% print(quote = FALSE, row.names = FALSE)
 #cat(format(as_tibble(trans_tree.df[c(1:5),]))[-c(1L,3L)], sep = "\n")
 
 sprintf("Sequence sample times...")
 
-simObj$diag_time %>% print(n = Inf)
+simObj$diag_time %>% as.data.frame() %>% print(quote = FALSE, row.names = FALSE) #%>% print(n = Inf)
 #cat(format(as_tibble(simObj$diag_time[c(1:5),]))[-c(1L,3L)], sep = "\n")
+
+sprintf("PLWH demographics...")
+
+simObj$popdf %>% select(id, gender, risk, age) %>% as.data.frame() %>% print(quote = FALSE, row.names = FALSE)
