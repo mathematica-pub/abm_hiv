@@ -103,4 +103,4 @@ simObj$diag_time %>% as.data.frame() %>% print(quote = FALSE, row.names = FALSE)
 
 sprintf("PLWH demographics...")
 
-simObj$popdf %>% select(id, gender, risk, age) %>% as.data.frame() %>% print(quote = FALSE, row.names = FALSE)
+simObj$popdf %>% select(id, gender, risk, age, race) %>% as.data.frame() %>% print(quote = FALSE, row.names = FALSE)
