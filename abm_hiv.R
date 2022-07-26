@@ -79,3 +79,13 @@ saveRDS(simObj, "../results/rw_120months_7_15_22_simObj.rds")
 #          file = "../results/rw_120months_7_11_22_diag_time.tsv",
 #          col_names = FALSE)
 
+# popdf_all = bind_rows(simObj$popdf_dead %>% select(id, gender, risk, age, race),
+#                       simObj$popdf %>% select(id, gender, risk, age, race))
+# diag_time = left_join(simObj$diag_time %>% filter(event == "diagnosis"),
+#                       popdf_all,
+#                       by = c("ID" = "id"))
+# diag_time = diag_time %>%
+#   rename(age_at_end = age)
+#
+# write_csv(diag_time,
+#           file = "../results/SIM_diag_time_7_26_22.csv")

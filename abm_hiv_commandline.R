@@ -45,6 +45,8 @@ simObj$diag_time <- tibble(ID = simObj$popdf %>%
                            month = 0,
                            event = "initial")
 
+simObj$popdf_dead = NULL
+
 simData <- data.frame(list())
 
 print("Starting simulation...")
@@ -98,9 +100,13 @@ trans_tree.df %>% as.data.frame() %>% print(quote = FALSE, row.names = FALSE)
 
 sprintf("Sequence sample times...")
 
-simObj$diag_time %>% as.data.frame() %>% print(quote = FALSE, row.names = FALSE) #%>% print(n = Inf)
+simObj$diag_time %>% select(-cd4) %>%as.data.frame() %>% print(quote = FALSE, row.names = FALSE) #%>% print(n = Inf)
 #cat(format(as_tibble(simObj$diag_time[c(1:5),]))[-c(1L,3L)], sep = "\n")
 
 sprintf("PLWH demographics...")
 
+simObj$popdf_dead %>% select(id, gender, risk, age, race) %>% as.data.frame() %>% print(quote = FALSE, row.names = FALSE)
 simObj$popdf %>% select(id, gender, risk, age, race) %>% as.data.frame() %>% print(quote = FALSE, row.names = FALSE)
+
+
+

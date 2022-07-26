@@ -100,27 +100,27 @@ care_stage_module <- function(simObj) {
 
   if (simObj$testflag) newPop <- ensure(newPop, all(.$nextStage != "ERROR"))
 
-  diag_time_TEMP <- tibble(ID = newPop %>%
-                             filter(stage == "hiv", nextStage == "diag") %>%
-                             pull(id),
+  TEMP = filter(newPop, stage == "hiv", nextStage == "diag")
+  diag_time_TEMP <- tibble(ID = pull(TEMP, id),
                            month = simObj$month,
-                           event = "diagnosis")
+                           event = "diagnosis",
+                           cd4 = pull(TEMP, cd4))
   simObj$diag_time = bind_rows(simObj$diag_time,
                                diag_time_TEMP)
 
-  diag_time_TEMP <- tibble(ID = newPop %>%
-                             filter(stage == "suppress", nextStage == "care") %>%
-                             pull(id),
+  TEMP = filter(newPop, stage == "suppress", nextStage == "care")
+  diag_time_TEMP <- tibble(ID = pull(TEMP, id),
                            month = simObj$month,
-                           event = "rebound")
+                           event = "rebound",
+                           cd4 = pull(TEMP, cd4))
   simObj$diag_time = bind_rows(simObj$diag_time,
                                diag_time_TEMP)
 
-  diag_time_TEMP <- tibble(ID = newPop %>%
-                             filter(stage == "left", nextStage == "care") %>%
-                             pull(id),
+  TEMP = filter(newPop, stage == "left", nextStage == "care")
+  diag_time_TEMP <- tibble(ID = pull(TEMP, id),
                            month = simObj$month,
-                           event = "reengage")
+                           event = "reengage",
+                           cd4 = pull(TEMP, cd4))
   simObj$diag_time = bind_rows(simObj$diag_time,
                                diag_time_TEMP)
 
