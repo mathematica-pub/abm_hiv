@@ -105,8 +105,10 @@ simObj$diag_time %>% select(-cd4) %>%as.data.frame() %>% print(quote = FALSE, ro
 
 sprintf("PLWH demographics...")
 
-simObj$popdf_dead %>% select(id, gender, risk, age, race) %>% as.data.frame() %>% print(quote = FALSE, row.names = FALSE)
-simObj$popdf %>% select(id, gender, risk, age, race) %>% as.data.frame() %>% print(quote = FALSE, row.names = FALSE)
+bind_rows(simObj$popdf_dead %>% select(id, gender, risk, age, race),
+          simObj$popdf %>% select(id, gender, risk, age, race)) %>%
+  as.data.frame() %>% print(quote = FALSE, row.names = FALSE)
+
 
 
 

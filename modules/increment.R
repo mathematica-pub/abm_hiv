@@ -15,7 +15,9 @@ increment_module <- function(simObj) {
     pull(id)
 
   simObj$popdf_dead = bind_rows(simObj$popdf_dead,
-                                simObj$popdf %>% filter(stage == "dead") %>% select(id, gender, risk, age, race))
+                                simObj$popdf %>% filter(stage == "dead") %>%
+                                  select(id, gender, risk, age, race) %>%
+                                  mutate(age = age + (simObj$duration-simObj$month)/12))
 
   simObj$networks <- lapply(simObj$networks, filter, ID1 %!in% HIVdead_ID)
   simObj$ids      <- lapply(simObj$ids, function(x) x[!(x %in% HIVdead_ID)])

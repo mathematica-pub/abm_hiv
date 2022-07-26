@@ -68,8 +68,8 @@ trans_tree.df = bind_rows(trans_tree.df %>%
                             mutate(ID1 = as.character(ID1),
                                    ID2 = as.character(ID2)))
 
-saveRDS(simData, "../results/rw_120months_7_15_22.rds")
-saveRDS(simObj, "../results/rw_120months_7_15_22_simObj.rds")
+saveRDS(simData, "../results/rw_216months_7_26_22.rds")
+saveRDS(simObj, "../results/rw_216months_7_26_22_simObj.rds")
 
 #write_tsv(trans_tree.df,
 #          file = "../results/rw_120months_7_11_22_trans_tree.tsv",
