@@ -64,7 +64,7 @@ for (i in 1:simObj$duration) {
   toc()
 }
 
-options(max.print = 1000000)
+options(max.print = .Machine$integer.max)
 
 simData <- inflate_module(simData, simObj$inflation)
 simDataDisc <- discount_module(simData, simObj$discount)
