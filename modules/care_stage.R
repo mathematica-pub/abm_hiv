@@ -132,7 +132,7 @@ care_stage_module <- function(simObj) {
   simObj$diag_time = bind_rows(simObj$diag_time,
                                diag_time_TEMP)
 
-  TEMP = filter(newPop, stage != "death", nextStage == "death")
+  TEMP = filter(newPop, stage != "dead", nextStage == "dead")
   diag_time_TEMP <- tibble(ID = pull(TEMP, id),
                            month = simObj$month,
                            event = "death",
