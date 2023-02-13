@@ -124,6 +124,22 @@ care_stage_module <- function(simObj) {
   simObj$diag_time = bind_rows(simObj$diag_time,
                                diag_time_TEMP)
 
+  TEMP = filter(newPop, stage == "diag", nextStage == "care")
+  diag_time_TEMP <- tibble(ID = pull(TEMP, id),
+                           month = simObj$month,
+                           event = "linkage",
+                           cd4 = pull(TEMP, cd4))
+  simObj$diag_time = bind_rows(simObj$diag_time,
+                               diag_time_TEMP)
+
+  TEMP = filter(newPop, stage != "death", nextStage == "death")
+  diag_time_TEMP <- tibble(ID = pull(TEMP, id),
+                           month = simObj$month,
+                           event = "death",
+                           cd4 = pull(TEMP, cd4))
+  simObj$diag_time = bind_rows(simObj$diag_time,
+                               diag_time_TEMP)
+
   if (simObj$valflag) {
 	  newPop <- newPop %>%
 		  mutate(laststage = stage,

@@ -70,6 +70,44 @@ trans_tree.df = bind_rows(trans_tree.df %>%
 saveRDS(simData, "../results/rw_216months_7_26_22.rds")
 saveRDS(simObj, "../results/rw_216months_7_26_22_simObj.rds")
 
+node_list.df = bind_rows(simObj$popdf %>% select(id, gender, risk, age, race),
+          simObj$popdf_dead) %>%
+  mutate(gender_short = case_when(gender == "female" ~ "F",
+                                  gender == "male" ~ "M")) %>%
+  mutate(shape = case_when(gender == "female" ~ "square",
+                                  gender == "male" ~ "diamond")) %>%
+  mutate(race_short = case_when(race == "black" ~ "B",
+                                race == "other" ~ "O",
+                                race == "hispanic" ~ "H")) %>%
+  mutate(risk_short = case_when(risk == "IDU" ~ "I",
+                                risk == "MSM" ~ "M",
+                                risk == "other" ~ "N",
+                                risk == "MSMandIDU" ~ "B")) %>%
+  mutate(color = case_when(risk == "IDU" ~ "orange",
+                                risk == "MSM" ~ "green",
+                                risk == "other" ~ "red",
+                                risk == "MSMandIDU" ~ "black")) %>%
+  unite("group", c(gender_short, risk_short, race_short), sep= "", remove = TRUE) %>%
+  select(id, group, shape, color)
+
+edge_list.df = simObj$trans_tree %>%
+  rename(from = ID1,
+         to = ID2)
+
+edge_list.df$width <- 1+links$weight/8 # line width
+edge_list.df$color <- "gray"    # line color
+edge_list.df$arrows <- "middle" # arrows: 'from', 'to', or 'middle'
+edge_list.df$smooth <- FALSE    # should the edges be curved?
+edge_list.df$shadow <- FALSE    # edge shadow
+
+#install.packages('visNetwork')
+library('visNetwork')
+
+visnet <- visNetwork(node_list.df, edge_list.df)
+visnet
+visLegend(visnet, main="Legend", position="right", ncol=4)
+
+
 #write_tsv(trans_tree.df,
 #          file = "../results/rw_120months_7_11_22_trans_tree.tsv",
 #          col_names = FALSE)
