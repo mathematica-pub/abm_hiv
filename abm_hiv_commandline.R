@@ -3,6 +3,7 @@
 args <- commandArgs(trailingOnly = TRUE)
 file_loc_source <- args[1]
 file_loc_input <- args[2]
+file_loc_link <- args[3]
 
 library(gtools)
 library(ensurer)
@@ -12,6 +13,8 @@ library(rlang)
 library(readxl)
 library(tidyverse)
 library(tictoc)
+library(lubridate)
+
 for (fl in list.files(file_loc_source)) {
   print(sprintf("%s", fl))
   source(paste(file_loc_source , fl, sep = "/"))
@@ -48,6 +51,14 @@ simObj$diag_time <- tibble(ID = simObj$popdf %>%
 simObj$popdf_dead = NULL
 
 simData <- data.frame(list())
+
+if (!is.null(file_loc_link)) {
+  link_county_abm.df = link_create(file_loc_link)
+
+  sprintf("Linkages...")
+  link_county_abm.df %>% as.data.frame() %>% print(quote = FALSE, row.names = FALSE)
+
+}
 
 print("Starting simulation...")
 
@@ -110,6 +121,8 @@ sprintf("PLWH demographics...")
 bind_rows(simObj$popdf_dead %>% select(id, gender, risk, age, race),
           simObj$popdf %>% select(id, gender, risk, age, race)) %>%
   as.data.frame() %>% print(quote = FALSE, row.names = FALSE)
+
+
 
 
 
