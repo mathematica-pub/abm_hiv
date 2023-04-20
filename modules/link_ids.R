@@ -1,6 +1,11 @@
 
 link_create <- function(file_loc_link, simObj) {
 
+
+  # •	Will need to change data filter once we figure out how to “stabilize” our population as the data extracts are still changing (sent a note to Gabe/Natasha/Geoff/Alan)
+  # •	Need to figure out a better approach to address the missing demographic characteristics
+  # UCI vs. UCSD id column
+
   demographics = read_csv(file_loc_link) %>%
     rename(UCSD_id = UCI )
 
