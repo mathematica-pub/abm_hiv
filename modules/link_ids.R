@@ -4,7 +4,7 @@ link_create <- function(file_loc_link, simObj) {
   demographics = read_csv(file_loc_link) %>%
     rename(UCSD_id = UCI )
 
-  demographics %>% filter(cur_in_sd_county == 1,
+  demographics = demographics %>% filter(cur_in_sd_county == 1,
                           alive_1_1_2019 == 1,
                           `Diagnosis year` < 2019)
 
