@@ -53,7 +53,7 @@ simObj$popdf_dead = NULL
 simData <- data.frame(list())
 
 if (!is.null(file_loc_link)) {
-  link_county_abm.df = link_create(file_loc_link)
+  link_county_abm.df = link_create(file_loc_link, simObj)
 
   sprintf("Linkages...")
   link_county_abm.df %>% as.data.frame() %>% print(quote = FALSE, row.names = FALSE)
