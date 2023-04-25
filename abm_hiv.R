@@ -52,6 +52,8 @@ if (!is.null(file_loc_link)) {
 
 }
 
+#link_county_abm.df %>% is.na() %>% sum()
+
 # simObj$popdf %>% nrow()
 #
 # simObj$popdf %>%

@@ -8,7 +8,6 @@ link_create <- function(file_loc_link, simObj) {
   # Figure out about stage 8
 
   demographics = read_csv(file_loc_link)
-
   #%>%
   #  rename(UCSD_id = UCI )
 
@@ -28,19 +27,13 @@ link_create <- function(file_loc_link, simObj) {
                                                       'IDU',
                                                       'MSMandIDU',
                                                       'other',
-                                                      'other',
+                                                      NA,
                                                       'other',
                                                       'other'))
 
-  gender.conversion <- data.frame(raw = c('Male',
-                                          'Female',
-                                          'Additional Gender Identity',
-                                          'Transgender-- Female to male',
-                                          'Transgender-- Male to female'),
+  gender.conversion <- data.frame(raw = c('M',
+                                          'F'),
                                   converted = c('male',
-                                                'female',
-                                                'male',
-                                                'male',
                                                 'female'))
 
   #change the labels in the converted string to whatever categories you want.
@@ -55,7 +48,7 @@ link_create <- function(file_loc_link, simObj) {
   #                                               'Not Hispanic, Multi-race'))
 
   race.cats <-data.frame(raw = c(1:8),
-                         converted = c('Hispanic',
+                         converted = c('hispanic',
                                        'other',
                                        'other',
                                        'black',
@@ -71,21 +64,24 @@ link_create <- function(file_loc_link, simObj) {
                                 TRUE ~ "olderadult"),
            race = as.character(factor(race,levels = race.cats$raw,
                                       labels = race.cats$converted)),
-           gender = as.character(factor(`Current gender`,levels = gender.conversion$raw,
+           gender = as.character(factor(birth_sex ,levels = gender.conversion$raw,
                                         labels = gender.conversion$converted)),
            risk = as.character(factor(`Exposure Category`,levels = transmission.conversion$raw,
                                       labels = transmission.conversion$converted))) %>%
     select(UCSD_id, agegroup, gender, race, risk)
+
+  #table(county_demo.df$risk, useNA = "ifany")
+  #table(county_demo.df$gender, useNA = "ifany")
 
   diag_init_cov.df <- simObj$popdf %>%
     filter(stage %in% c("suppress", "left", "diag", "care", "dead")) %>%
     select(id, agegroup, gender, race, risk)
 
 
-  # agegroup_i = "youth"
-  # gender_i = "male"
-  # race_i = "other"
-  # risk_i = "MSM"
+  #agegroup_i = "olderadult"
+  #gender_i = "male"
+  #race_i = "other"
+  #risk_i = "MSM"
 
   link_county_abm.df = tibble(abm_id = NULL,
                               UCSD_id = NULL)
@@ -113,6 +109,7 @@ link_create <- function(file_loc_link, simObj) {
           } else {
             link_county_abm_i.df = tibble(abm_id = diag_init_cov_i.df$id,
                                           UCSD_id = c(county_demo_i.df$UCSD_id, rep(NA, nrow(diag_init_cov_i.df)-nrow(county_demo_i.df))))
+            #print(paste(nrow(diag_init_cov_i.df)-nrow(county_demo_i.df), agegroup_i, gender_i, race_i, risk_i))
           }
 
           link_county_abm.df = bind_rows(link_county_abm.df, link_county_abm_i.df)
@@ -120,6 +117,7 @@ link_create <- function(file_loc_link, simObj) {
       }
     }
   }
+
 
   return(link_county_abm.df)
 }
