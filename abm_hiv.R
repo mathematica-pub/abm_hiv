@@ -41,8 +41,10 @@ simObj$diag_time <- tibble(ID = simObj$popdf %>%
                              filter(stage %in% c("suppress", "left", "diag", "care", "dead")) %>%
                              pull(id),
                            month = 0,
-                           event = "initial")
-
+                           event = "initial",
+                           cd4 = simObj$popdf %>%
+                             filter(stage %in% c("suppress", "left", "diag", "care", "dead")) %>%
+                             pull(cd4))
 
 if (!is.null(file_loc_link)) {
   link_county_abm.df = link_create(file_loc_link, simObj)

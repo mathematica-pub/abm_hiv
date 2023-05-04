@@ -5,9 +5,10 @@ file_loc_source <- args[1]
 file_loc_input <- args[2]
 file_loc_link <- args[3]
 
-#file_loc_source = "./modules"
+file_loc_source = "./modules"
 #file_loc_input = "C:/Users/ravij/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/RWHAP_Equity-feat-add_equity_outcomes/inputs_2019/user_inputs_Current_RWHAP - 200K - PrEP.xlsx"
-#file_loc_link = "C:/Users/ravij/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/sd_county_demographics.csv"
+file_loc_input = "C:/Users/ravij/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/RWHAP_Equity-feat-add_equity_outcomes/inputs_2019/SD_county_2019_county_est_update_04_23_inital_only.xlsx"
+file_loc_link = "C:/Users/ravij/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/sd_county_demographics.csv"
 
 library(gtools)
 library(ensurer)
@@ -50,7 +51,10 @@ simObj$diag_time <- tibble(ID = simObj$popdf %>%
                              filter(stage %in% c("suppress", "left", "diag", "care", "dead")) %>%
                              pull(id),
                            month = 0,
-                           event = "initial")
+                           event = "initial",
+                           cd4 = simObj$popdf %>%
+                             filter(stage %in% c("suppress", "left", "diag", "care", "dead")) %>%
+                             pull(cd4))
 
 simObj$popdf_dead = NULL
 
@@ -67,9 +71,7 @@ if (!is.null(file_loc_link)) {
 print("Starting simulation...")
 
 if (simObj$duration < 1) {
-  simObj <- health_state_module(simObj)
   simObj <- outcomes_module(simObj)
-  simObj <- prep_update(simObj)
   simData <- bind_rows(simData, collapse_module(simObj))
 } else {
   for (i in 1:simObj$duration) {
@@ -129,9 +131,16 @@ simObj$diag_time %>% select(-cd4) %>%as.data.frame() %>% print(quote = FALSE, ro
 
 sprintf("PLWH demographics...")
 
-bind_rows(simObj$popdf_dead %>% select(id, gender, risk, age, race),
-          simObj$popdf %>% select(id, gender, risk, age, race)) %>%
-  as.data.frame() %>% print(quote = FALSE, row.names = FALSE)
+if (is.null(simObj$popdf_dead) > 0) {
+  simObj$popdf %>%
+    select(id, gender, risk, age, race) %>%
+    as.data.frame() %>%
+    print(quote = FALSE, row.names = FALSE)
+} else {
+  bind_rows(simObj$popdf_dead %>% select(id, gender, risk, age, race),
+            simObj$popdf %>% select(id, gender, risk, age, race)) %>%
+    as.data.frame() %>% print(quote = FALSE, row.names = FALSE)
+}
 
 
 
