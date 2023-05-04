@@ -5,10 +5,10 @@ file_loc_source <- args[1]
 file_loc_input <- args[2]
 file_loc_link <- args[3]
 
-file_loc_source = "./modules"
+#file_loc_source = "./modules"
 #file_loc_input = "C:/Users/ravij/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/RWHAP_Equity-feat-add_equity_outcomes/inputs_2019/user_inputs_Current_RWHAP - 200K - PrEP.xlsx"
-file_loc_input = "C:/Users/ravij/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/RWHAP_Equity-feat-add_equity_outcomes/inputs_2019/SD_county_2019_county_est_update_04_23_inital_only.xlsx"
-file_loc_link = "C:/Users/ravij/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/sd_county_demographics.csv"
+#file_loc_input = "C:/Users/ravij/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/RWHAP_Equity-feat-add_equity_outcomes/inputs_2019/SD_county_2019_county_est_update_04_23_inital_only.xlsx"
+#file_loc_link = "C:/Users/ravij/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/sd_county_demographics.csv"
 
 library(gtools)
 library(ensurer)
