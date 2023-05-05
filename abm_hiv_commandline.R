@@ -131,7 +131,7 @@ simObj$diag_time %>% select(-cd4) %>%as.data.frame() %>% print(quote = FALSE, ro
 
 sprintf("PLWH demographics...")
 
-if (is.null(simObj$popdf_dead) > 0) {
+if (is.null(simObj$popdf_dead)) {
   simObj$popdf %>%
     select(id, gender, risk, age, race) %>%
     as.data.frame() %>%
