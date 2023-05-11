@@ -75,15 +75,15 @@ if (!is.null(file_loc_link)) {
 
 simData <- data.frame(list())
 
+print("Starting simulation...")
+print(paste("Month: ", "0", sep = ""))
 if (simObj$duration < 1) {
-  simObj <- health_state_module(simObj)
   simObj <- outcomes_module(simObj)
-  simObj <- prep_update(simObj)
   simData <- bind_rows(simData, collapse_module(simObj))
 } else {
   for (i in 1:simObj$duration) {
     tic()
-    print(i)
+    print(paste("Month: ", i, sep = ""))
     simObj <- increment_module(simObj)
     simObj <- transmission_module(simObj)
     simObj <- care_stage_module(simObj)

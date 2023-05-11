@@ -6,9 +6,9 @@ file_loc_input <- args[2]
 file_loc_link <- args[3]
 
 #file_loc_source = "./modules"
-#file_loc_input = "C:/Users/ravij/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/RWHAP_Equity-feat-add_equity_outcomes/inputs_2019/user_inputs_Current_RWHAP - 200K - PrEP.xlsx"
-#file_loc_input = "C:/Users/ravij/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/RWHAP_Equity-feat-add_equity_outcomes/inputs_2019/SD_county_2019_county_est_update_04_23_inital_only.xlsx"
-#file_loc_link = "C:/Users/ravij/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/sd_county_demographics.csv"
+#file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/RWHAP_Equity-feat-add_equity_outcomes/inputs_2019/user_inputs_Current_RWHAP - 200K - PrEP.xlsx"
+#file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/RWHAP_Equity-feat-add_equity_outcomes/inputs_2019/SD_county_2019_county_est_update_04_23_inital_only.xlsx"
+#file_loc_link = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/sd_county_demographics.csv"
 
 library(gtools)
 library(ensurer)
@@ -69,14 +69,14 @@ if (!is.null(file_loc_link)) {
 }
 
 print("Starting simulation...")
-
+print(paste("Month: ", "0", sep = ""))
 if (simObj$duration < 1) {
   simObj <- outcomes_module(simObj)
   simData <- bind_rows(simData, collapse_module(simObj))
 } else {
   for (i in 1:simObj$duration) {
     tic()
-    print(i)
+    print(paste("Month: ", i, sep = ""))
     simObj <- increment_module(simObj)
     simObj <- transmission_module(simObj)
     simObj <- care_stage_module(simObj)
