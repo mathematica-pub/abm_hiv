@@ -143,15 +143,15 @@ if (is.null(simObj$popdf_dead)) {
 }
 
 
-trans_tree.df %>% nrow()
-trans_tree.df$ID2 %>% unique() %>% length()
-
-x = bind_rows(simObj$popdf_dead %>% select(id, gender, risk, age, race),
-              simObj$popdf %>% select(id, gender, risk, age, race))
-
-x %>% nrow()
-x$id %>% unique() %>% length()
-x %>% filter(id == "201118")
+# trans_tree.df %>% nrow()
+# trans_tree.df$ID2 %>% unique() %>% length()
+#
+# x = bind_rows(simObj$popdf_dead %>% select(id, gender, risk, age, race),
+#               simObj$popdf %>% select(id, gender, risk, age, race))
+#
+# x %>% nrow()
+# x$id %>% unique() %>% length()
+# x %>% filter(id == "201118")
 
 
 
