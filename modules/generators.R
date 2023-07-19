@@ -466,7 +466,7 @@ gen_serv_transition_mods <- function(origin,
   #will merge to all individuals, the multiplier is simply 1 for inapplicable
   #combinations of stage-services.
   rawMods <- rawMods %>%
-    left_join(modifiedStages, by = "temp1") %>%
+    left_join(modifiedStages, by = "temp1", relationship = "many-to-many") %>%
     mutate(mult = if_else(temp1 == "Decrease", 1-temp5, 1+temp5)) %>%
     select(temp2, stage, change, mult) %>%
     spread(change, mult)

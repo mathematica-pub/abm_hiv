@@ -46,8 +46,8 @@ initialization_module <- function(inputObj) {
   #Combine all possible individual types with the input proportions
   combinedDemos <- left_join(inputObj$popprobs$hiv, inputObj$popprobs$service,
                              by = c("agegroup", "gender", "race", "risk", "rwhap")) %>%
-    left_join(inputObj$popprobs$nodes, by = "rwhap") %>%
-    left_join(inputObj$popprobs$rna, by = "stage")
+    left_join(inputObj$popprobs$nodes, by = "rwhap", relationship = "many-to-many") %>%
+    left_join(inputObj$popprobs$rna, by = "stage", relationship = "many-to-many")
 
   if (inputObj$testflag) combinedDemos <- ensure(combinedDemos, sum(is.na(.))==0)
 

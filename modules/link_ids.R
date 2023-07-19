@@ -7,9 +7,8 @@ link_create <- function(file_loc_link, simObj) {
   # UCI vs. UCSD id column
   # Figure out about stage 8
 
-  demographics = read_csv(file_loc_link)
-  #%>%
-  #  rename(UCSD_id = UCI )
+  demographics = read_csv(file_loc_link)%>%
+  rename(UCSD_id = UCI )
 
   demographics = demographics %>% filter(cur_in_sd_county == 1,
                           alive_1_1_2019 == 1,
