@@ -5,18 +5,21 @@
 
 transmission_module_new_infection <- function(simObj, New_infection.df) {
 
-  IDU_Net   <- gen_risk_net(simObj, "IDU", newData = New_infection.df)
-  S_MSM_Net <- gen_risk_net(simObj, "MSM", newData = New_infection.df)
+  #IDU_Net   <- gen_risk_net(simObj, "IDU", newData = New_infection.df)
 
-  S_nonMSM_F_Net <- gen_gender_net(simObj, "female", newData = New_infection.df)
-  S_nonMSM_M_Net <- gen_gender_net(simObj, "male",   newData = New_infection.df)
+  #simObj$networks$IDU_Net <- bind_rows(simObj$networks$IDU_Net,      IDU_Net)
 
-  simObj$networks <-
-    list(IDU_Net      = bind_rows(simObj$networks$IDU_Net,      IDU_Net),
-         S_MSM_Net    = bind_rows(simObj$networks$S_MSM_Net,    S_MSM_Net),
-         S_nonMSM_Net = bind_rows(simObj$networks$S_nonMSM_Net,
-                                  S_nonMSM_F_Net,
-                                  S_nonMSM_M_Net))
+  # S_MSM_Net <- gen_risk_net(simObj, "MSM", newData = New_infection.df)
+  #
+  # S_nonMSM_F_Net <- gen_gender_net(simObj, "female", newData = New_infection.df)
+  # S_nonMSM_M_Net <- gen_gender_net(simObj, "male",   newData = New_infection.df)
+  #
+  # simObj$networks <-
+  #   list(IDU_Net      = bind_rows(simObj$networks$IDU_Net,      IDU_Net),
+  #        S_MSM_Net    = bind_rows(simObj$networks$S_MSM_Net,    S_MSM_Net),
+  #        S_nonMSM_Net = bind_rows(simObj$networks$S_nonMSM_Net,
+  #                                 S_nonMSM_F_Net,
+  #                                 S_nonMSM_M_Net))
 
   return(simObj)
 }

@@ -31,15 +31,15 @@ initialize_prep <- function(simObj, origin) {
     prep_info = bind_rows(prep_info, prep_temp)
   }
 
-  IDU_notMSM = setdiff(simObj$ids$idu, simObj$ids$msm)
-  MSM_noIDU = setdiff(simObj$ids$msm, simObj$ids$idu)
-  MSM_IDU = intersect(simObj$ids$msm, simObj$ids$idu)
-  nonMSM_noIDU = setdiff(simObj$ids$notmsm, simObj$ids$idu)
-
-  IDU_notMSM_neg = setdiff(IDU_notMSM, simObj$popdf$id)
-  MSM_noIDU_neg = setdiff(MSM_noIDU, simObj$popdf$id)
-  MSM_IDU_neg = setdiff(MSM_IDU, simObj$popdf$id)
-  nonMSM_noIDU_neg = setdiff(nonMSM_noIDU, simObj$popdf$id)
+  # IDU_notMSM = setdiff(simObj$ids$idu, simObj$ids$msm)
+  # MSM_noIDU = setdiff(simObj$ids$msm, simObj$ids$idu)
+  # MSM_IDU = intersect(simObj$ids$msm, simObj$ids$idu)
+  # nonMSM_noIDU = setdiff(simObj$ids$notmsm, simObj$ids$idu)
+  #
+  # IDU_notMSM_neg = setdiff(IDU_notMSM, simObj$popdf$id)
+  # MSM_noIDU_neg = setdiff(MSM_noIDU, simObj$popdf$id)
+  # MSM_IDU_neg = setdiff(MSM_IDU, simObj$popdf$id)
+  # nonMSM_noIDU_neg = setdiff(nonMSM_noIDU, simObj$popdf$id)
 
 
   prep.df = tibble(id = NULL,
@@ -48,22 +48,30 @@ initialize_prep <- function(simObj, origin) {
 
   prep.df = bind_rows(prep.df,
                       prep_init_sample(risk_group = "idu",
-                                       id_neg = IDU_notMSM_neg,
+                                       id_neg = simObj$negpopdf %>%
+                                         filter(risk == "IDU") %>%
+                                         pull(id),
                                        prep_info))
 
   prep.df = bind_rows(prep.df,
                       prep_init_sample(risk_group = "msm",
-                                       id_neg = MSM_noIDU_neg,
+                                       id_neg = simObj$negpopdf %>%
+                                         filter(risk == "MSM") %>%
+                                         pull(id),
                                        prep_info))
 
   prep.df = bind_rows(prep.df,
                       prep_init_sample(risk_group = "msm",
-                                       id_neg = MSM_IDU_neg,
+                                       id_neg = simObj$negpopdf %>%
+                                         filter(risk == "MSMandIDU") %>%
+                                         pull(id),
                                        prep_info))
 
   prep.df = bind_rows(prep.df,
                       prep_init_sample(risk_group = "nonmsm",
-                                       id_neg = nonMSM_noIDU_neg,
+                                       id_neg = simObj$negpopdf %>%
+                                         filter(risk == "other") %>%
+                                         pull(id),
                                        prep_info))
 
   simObj$prep_info = prep_info

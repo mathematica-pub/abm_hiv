@@ -279,20 +279,23 @@ initialization_module <- function(inputObj) {
 
   #---Generate Negative Population---
 
-  preSimObj <- initialize_negative_pop(preSimObj)
+  #preSimObj <- initialize_negative_pop(preSimObj)
+  preSimObj$negpopdf = initialization_atrisk(inputObj, num_pospop = nrow(fullPop))
 
   #---Generate Transmission Networks---
+  simObj = generate_s_net(preSimObj, init_net=TRUE)
+  #simObj$networks$IDU_Net = gen_risk_net(simObj, "IDU")
 
-  simObj <- c(preSimObj,
-              list("networks" =
-                     list(IDU_Net      = gen_risk_net(preSimObj, "IDU"),
-                          S_MSM_Net    = gen_risk_net(preSimObj, "MSM"),
-                          S_nonMSM_Net = rbind(gen_gender_net(preSimObj, "female"),
-                                               gen_gender_net(preSimObj, "male")))))
+  # simObj <- c(preSimObj,
+  #             list("networks" =
+  #                    list(IDU_Net      = gen_risk_net(preSimObj, "IDU"),
+  #                         S_MSM_Net    = gen_risk_net(preSimObj, "MSM"),
+  #                         S_nonMSM_Net = rbind(gen_gender_net(preSimObj, "female"),
+  #                                              gen_gender_net(preSimObj, "male")))))
 
   if (simObj$testflag) check_assert_that(simObj,
                                          New_infection.df = NULL,
-                                         checks =c(1:9))
+                                         checks =c(1:6))
 
   return(simObj)
 }

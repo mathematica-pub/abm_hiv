@@ -6,13 +6,23 @@ library(rlang)
 library(readxl)
 library(tidyverse)
 library(tictoc)
+library(reticulate)
+library(fastRG)
+
 for (fl in list.files("./modules")) {
   print(fl)
-  source(file.path(".", "modules", fl))
+  file_type = str_split(fl, "\\.")[[1]][2]
+
+  if (file_type == "R") {
+    source(file.path(".", "modules", fl))
+  }
+  if (file_type == "py") {
+    reticulate::source_python(file.path(".", "modules", fl))
+  }
 }
 
 #file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/RWHAP_Equity-feat-add_equity_outcomes/inputs_2019/user_inputs_Current_RWHAP - 200K - PrEP.xlsx"
-file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/data.xlsx"
+file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/data_v2.xlsx"
 file_loc_link = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/demographics.csv"
 
 inputObj <- input_module(origin = file_loc_input)

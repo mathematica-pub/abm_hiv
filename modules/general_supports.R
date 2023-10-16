@@ -154,7 +154,6 @@ check_assert_that <- function(simObj, New_infection.df,
   if(3 %in% checks) {
     assert_that(all(simObj$networks$S_nonMSM_Net$ID1 %in%
                       (simObj$popdf %>%
-                         filter(risk == "other" | risk == "IDU") %>%
                          pull(id))),
                 msg = "Error - Transmission Module: nonMSM network has non-positive or non-nonMSM IDs in ID1")
   }

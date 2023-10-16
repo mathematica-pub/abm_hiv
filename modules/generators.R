@@ -119,13 +119,15 @@ gen_cd4_defs <- function(origin) {
            dist, cd4param1, cd4param2)
 }
 
-gen_trans_params <- function(origin) {
+gen_trans_params_orig <- function(origin) {
 
   #Load data required tables from input parameter workbook
   iduNetRaw <- read_excel(origin, "Transmission + At-Risk Features", "A3:B8")
   heteroNetRaw <- read_excel(origin, "Transmission + At-Risk Features", "A11:D25") %>%
     fill(Parameter, `Age Category`)
   msmNetRaw <- read_excel(origin, "Transmission + At-Risk Features", "A28:D42") %>%
+    fill(Parameter, `Age Category`)
+  msmwNetRaw <- read_excel(origin, "Transmission + At-Risk Features", "A45:D59") %>%
     fill(Parameter, `Age Category`)
 
   # Transmission Parameters: IDU Probability for Contaminated Syringe
@@ -186,12 +188,16 @@ gen_trans_params <- function(origin) {
        "f_param_nonMSM" = modify_sexual_partners(heteroNetRaw, "dissolution"),
        # Transmission Probabilities by HIV-RNA
        "trans_prob_RNA_MSM" =
-         filter(msmNetRaw,
+         filter(heteroNetRaw,
                 Parameter ==
                   "HIV Monthly Transmission Probability Between Partners") %>%
          convert_rna_input("Viral Load") %>%
          mutate(trans_prob = Value) %>%
-         select(rna, trans_prob),
+         select(rna, trans_prob) %>%
+         mutate(trans_prob = trans_prob *
+         filter(msmNetRaw, Parameter ==
+                  "HIV Monthly Transmission Probability Between Partners Multiplier",`Viral Load` == "<200") %>%
+         pull(Value)),
        "trans_prob_RNA_nonMSM" =
          filter(heteroNetRaw,
                 Parameter ==
@@ -199,6 +205,88 @@ gen_trans_params <- function(origin) {
          convert_rna_input("Viral Load") %>%
          mutate(trans_prob = Value) %>%
          select(rna, trans_prob)
+  )
+}
+
+gen_trans_params <- function(origin) {
+
+  #Load data required tables from input parameter workbook
+  iduNetRaw <- read_excel(origin, "Transmission + At-Risk Features", "A3:B8")
+  heteroNetRaw <- read_excel(origin, "Transmission + At-Risk Features", "A11:D25") %>%
+    fill(Parameter, `Age Category`)
+  msmNetRaw <- read_excel(origin, "Transmission + At-Risk Features", "A28:D42") %>%
+    fill(Parameter, `Age Category`)
+  msmwNetRaw <- read_excel(origin, "Transmission + At-Risk Features", "A45:D59") %>%
+    fill(Parameter, `Age Category`)
+
+  # Transmission Parameters: IDU Probability for Contaminated Syringe
+  trans_prob_IDU_contaminated <-
+    iduNetRaw$Value[iduNetRaw$Parameter==
+                      "Probability of Transmission Through Contaminated Syringe"]
+  # Transmission Parameters: IDU Injection per Month
+  trans_prob_IDU_per_month <-
+    iduNetRaw$Value[iduNetRaw$Parameter=="Injections Per Month"]
+  # Transmission Parameters: Percentage of contaminated syringes
+  trans_prob_IDU_contaminated_per <-
+    iduNetRaw$Value[iduNetRaw$Parameter==
+                      "Percentage of Syringes With Contamination"]
+  # Transmission Parameters: Partners Per Person Per Month
+  trans_prob_IDU_num_partners <-
+    iduNetRaw$Value[iduNetRaw$Parameter==
+                      "Partners Per Person Per Month"]
+
+  list("discordant_IDU"    = iduNetRaw$Value[iduNetRaw$Parameter==
+                                               "Discordant Multiplier"],
+       "malefemale_partner_ratio_nonMSM" = heteroNetRaw$Value[heteroNetRaw$Parameter==
+                                                  "Proportion of misaligned edges to add"],
+       # Transmission Parameters: Partners per Person via IDU
+       "Poisson_mean_IDU"    = iduNetRaw$Value[iduNetRaw$Parameter==
+                                                 "Partners Per Person Per Month"],
+       # Transmission Parameters: Partners per Person via MSM Sex
+       "Poisson_mean_MSM"    = msmNetRaw$Value[msmNetRaw$Parameter==
+                                                 "Partners Per Person Per Month"],
+       # Transmission Parameters: Partners per Person via nonMSM Sex
+       "Poisson_mean_nonMSM" = heteroNetRaw$Value[heteroNetRaw$Parameter==
+                                                    "Partners Per Person Per Month"],
+       "trans_prob_IDU"      = (1-(1-(trans_prob_IDU_contaminated))^(
+         trans_prob_IDU_per_month * trans_prob_IDU_contaminated_per *
+           (1/trans_prob_IDU_num_partners))),
+       # Transmission Parameters: MSM Sexual Partner duration
+       "Duration_nonMSM" = heteroNetRaw$Value[heteroNetRaw$Parameter==
+                                                                "Duration"][1],
+       # Transmission Parameters: MSM Sexual Partner duration
+       "Duration_MSM" = msmNetRaw$Value[msmNetRaw$Parameter==
+                                                "Duration"][1],
+       # Transmission Parameters: MSM Sexual Assortativity
+       "Assortativity_MSM"    = msmNetRaw %>%
+         filter(Parameter == "Assortativity") %>%
+         select(`Age Category`, Value),
+       # Transmission Parameters: nonMSM Sexual Partner dissolution by age category
+       "Assortativity_nonMSM" = heteroNetRaw %>%
+         filter(Parameter == "Assortativity") %>%
+         select(`Age Category`, Value),
+       # Transmission Probabilities by HIV-RNA
+       "trans_prob_RNA_MSM" =
+         filter(heteroNetRaw,
+                Parameter ==
+                  "HIV Monthly Transmission Probability Between Partners") %>%
+         convert_rna_input("Viral Load") %>%
+         mutate(trans_prob = Value) %>%
+         select(rna, trans_prob) %>%
+         mutate(trans_prob = trans_prob *
+                  filter(msmNetRaw, Parameter ==
+                           "HIV Monthly Transmission Probability Between Partners Multiplier",`Viral Load` == "<200") %>%
+                  pull(Value)),
+       "trans_prob_RNA_nonMSM" =
+         filter(heteroNetRaw,
+                Parameter ==
+                  "HIV Monthly Transmission Probability Between Partners") %>%
+         convert_rna_input("Viral Load") %>%
+         mutate(trans_prob = Value) %>%
+         select(rna, trans_prob),
+       # Transmission Parameters: Proportion of MSM that are MSMW
+       "MSMW_prob"    = msmwNetRaw$Value[msmwNetRaw$Parameter==
+                                                 "Percentage of MSM who are MSMW"]
   )
 }
 

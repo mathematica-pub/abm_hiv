@@ -20,6 +20,15 @@ link_create <- function(file_loc_link, simObj) {
                             show_col_types = FALSE) %>%
     rename(UCSD_id = UCI )
 
+  #seed_seq = read_csv("/Users/ravigoyal/Downloads/seed_tree_IDs.txt",
+  #                    col_names = FALSE)
+  #temp = intersect(seed_seq$X1, demographics$UCSD_id)
+
+  #link = read_tsv("/Users/ravigoyal/Downloads/tmp/abm_hiv_id_map.tsv")
+
+  #temp = intersect(seed_seq$X1, link_county_abm.df$UCSD_id)
+  #temp = intersect(seed_seq$X1, link$UCSD_id)
+
   demographics = demographics %>% filter(cur_in_sd_county == 1,
                           alive_1_1_2019 == 1,
                           `Diagnosis year` < 2019)

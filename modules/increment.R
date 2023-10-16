@@ -20,6 +20,14 @@ increment_module <- function(simObj) {
                                   mutate(age = age + (simObj$duration-simObj$month)/12))
 
   simObj$networks <- lapply(simObj$networks, filter, ID1 %!in% HIVdead_ID)
+
+  simObj$networks$MSM <- simObj$networks$MSM %>%
+    filter(ID2 %!in% HIVdead_ID)
+  simObj$networks$HET <- simObj$networks$HET %>%
+    filter(ID2 %!in% HIVdead_ID)
+  simObj$networks$IDU <- simObj$networks$IDU %>%
+    filter(ID2 %!in% HIVdead_ID)
+
   simObj$ids      <- lapply(simObj$ids, function(x) x[!(x %in% HIVdead_ID)])
 
   #Remove dead people from population dataframe
