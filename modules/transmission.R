@@ -18,7 +18,7 @@ transmission_module <- function(simObj) {
 
   New_infection_tree = bind_rows(bind_rows(New_infection_ID_IDU, New_infection_ID_MSM),
                                  New_infection_ID_nonMSM) %>%
-    group_by(ID1) %>%
+    group_by(ID2) %>%
     slice_sample(n=1) %>%
     ungroup() %>%
     mutate(month = simObj$month)
