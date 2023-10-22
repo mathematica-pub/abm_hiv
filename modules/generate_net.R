@@ -4,7 +4,7 @@ generate_s_net_R <- function(network_type,
                              init_net,
                              simObj,
                              Combpop.df
-                             ) {
+) {
 
   if (network_type == "MSM") {
     if (init_net == TRUE) {
@@ -60,7 +60,7 @@ generate_s_net_R <- function(network_type,
                                  (gender == "male" & risk == "other" & hiv_status == "1") ~ 6,
                                  (gender == "male" & risk == "IDU" & hiv_status == "0") ~ 7,
                                  (gender == "male" & risk == "IDU" & hiv_status == "1") ~ 8
-                                 )) %>%
+        )) %>%
         arrange(block)
     } else {
 
@@ -123,8 +123,11 @@ generate_s_net_R <- function(network_type,
         )) %>%
         arrange(block)
     }
-    deg_seq_net = deg_seq_net %>%
-      mutate(networkx_id = c(1:(n())))
+
+    if (nrow(deg_seq_net) > 0) {
+      deg_seq_net = deg_seq_net %>%
+        mutate(networkx_id = c(1:(n())))
+    }
 
     dcsbm_theta = deg_seq_net$MSMW_partners
 
@@ -161,36 +164,40 @@ generate_s_net_R <- function(network_type,
 
   dcsbm_pi = as.numeric(tabulate(deg_seq_net$block, nbins = (dcsbm_B %>% nrow())))/nrow(deg_seq_net)
 
-  g = dcsbm(
-    theta = as.numeric(dcsbm_theta),
-    B = dcsbm_B,
-    expected_density = (sum(dcsbm_theta)/2)/choose(length(dcsbm_theta),2),
-    pi = dcsbm_pi,
-    sort_nodes = FALSE,
-    poisson_edges = FALSE,
-    allow_self_loops = FALSE
-  )
+  if (nrow(deg_seq_net) > 0) {
+    g = dcsbm(
+      theta = as.numeric(dcsbm_theta),
+      B = dcsbm_B,
+      expected_density = (sum(dcsbm_theta)/2)/choose(length(dcsbm_theta),2),
+      pi = dcsbm_pi,
+      sort_nodes = FALSE,
+      poisson_edges = FALSE,
+      allow_self_loops = FALSE
+    )
 
-  edgelist <- sample_edgelist(g)
+    edgelist <- sample_edgelist(g)
 
-  net.edgelist = left_join(edgelist, deg_seq_net %>% select(id, networkx_id),
-                               by = join_by(from == networkx_id)) %>%
-    select(-from) %>%
-    rename(source = id) %>%
-    left_join(deg_seq_net %>% select(id, networkx_id),
-              by = join_by(to == networkx_id)) %>%
-    select(-to) %>%
-    rename(target = id)
+    net.edgelist = left_join(edgelist, deg_seq_net %>% select(id, networkx_id),
+                             by = join_by(from == networkx_id)) %>%
+      select(-from) %>%
+      rename(source = id) %>%
+      left_join(deg_seq_net %>% select(id, networkx_id),
+                by = join_by(to == networkx_id)) %>%
+      select(-to) %>%
+      rename(target = id)
 
-   # Temp = left_join(edgelist, deg_seq_net %>% select(id, networkx_id),
-   #                         by = join_by(from == networkx_id)) %>%
-   #  rename(source = id) %>%
-   #  left_join(deg_seq_net %>% select(id, networkx_id),
-   #            by = join_by(to == networkx_id)) %>%
-   #  rename(target = id)
+    # Temp = left_join(edgelist, deg_seq_net %>% select(id, networkx_id),
+    #                         by = join_by(from == networkx_id)) %>%
+    #  rename(source = id) %>%
+    #  left_join(deg_seq_net %>% select(id, networkx_id),
+    #            by = join_by(to == networkx_id)) %>%
+    #  rename(target = id)
 
-  return(net.edgelist)
-
+    return(net.edgelist)
+  } else {
+    return(net.edgelist = tibble(source = NULL,
+                                 target = NULL))
+  }
 }
 
 generate_dcsbm_b_matrix <- function(network_type,

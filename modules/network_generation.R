@@ -537,7 +537,8 @@ generate_s_net <- function(simObj, init_net) {
                              group_by(id) %>%
                              summarise(MSMW_F_evolve_partners = n()),
                            by = c("id" = "id")) %>%
-      mutate(MSMW_F_evolve_partners = replace_na(MSMW_F_evolve_partners, as.integer(0)))  }
+      mutate(MSMW_F_evolve_partners = replace_na(MSMW_F_evolve_partners, as.integer(0)))
+    }
 
 
   #################################
@@ -783,16 +784,22 @@ generate_s_net <- function(simObj, init_net) {
       rename(ID1 = source,
              ID2 = target)
 
-    MSMW_net.edgelist = MSMW_net.edgelist %>%
-      rename(ID1 = source,
-             ID2 = target)
+    if (nrow(MSMW_net.edgelist) > 0) {
+      MSMW_net.edgelist = MSMW_net.edgelist %>%
+        rename(ID1 = source,
+               ID2 = target)
+    }
 
     IDU_net.edgelist = IDU_net.edgelist %>%
       rename(ID1 = source,
              ID2 = target)
 
-    simObj$networks$HET <- bind_rows(HET_net.edgelist,
-                                     MSMW_net.edgelist)
+    if (nrow(MSMW_net.edgelist) > 0) {
+      simObj$networks$HET <- bind_rows(HET_net.edgelist,
+                                       MSMW_net.edgelist)
+    } else {
+      simObj$networks$HET <- HET_net.edgelist
+    }
 
     simObj$networks$MSM <- MSM_net.edgelist
     simObj$networks$IDU <- IDU_net.edgelist
@@ -807,14 +814,20 @@ generate_s_net <- function(simObj, init_net) {
       rename(ID1 = source,
              ID2 = target)
 
-    MSMW_net.edgelist = MSMW_net.edgelist %>%
-      rename(ID1 = source,
-             ID2 = target)
+    if (nrow(MSMW_net.edgelist) > 0) {
+      MSMW_net.edgelist = MSMW_net.edgelist %>%
+        rename(ID1 = source,
+               ID2 = target)
+    }
 
+    if (nrow(MSMW_net.edgelist) > 0) {
     simObj$networks$HET <- bind_rows(simObj$networks$HET,
                                      bind_rows(HET_net.edgelist,
                                                MSMW_net.edgelist))
-
+    } else {
+      simObj$networks$HET <- bind_rows(simObj$networks$HET,
+                                       HET_net.edgelist)
+    }
     simObj$networks$MSM <- bind_rows(simObj$networks$MSM,
                                      MSM_net.edgelist)
   }
