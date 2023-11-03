@@ -8,6 +8,7 @@ library(tidyverse)
 library(tictoc)
 library(reticulate)
 library(fastRG)
+library(mice)
 
 for (fl in list.files("./modules")) {
   print(fl)
@@ -22,15 +23,18 @@ for (fl in list.files("./modules")) {
 }
 
 #file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/RWHAP_Equity-feat-add_equity_outcomes/inputs_2019/user_inputs_Current_RWHAP - 200K - PrEP.xlsx"
-file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/data_10_21_2023.xlsx"
-file_loc_link = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/demographics.csv"
+file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/data_11_02_2023.xlsx"
+#file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/data_v2_copy_val.xlsx"
+
+file_loc_link = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/demogaphics_11_02_2023.csv"
+#file_loc_link = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/sd_county_demographics.csv"
 
 inputObj <- input_module(origin = file_loc_input)
 
 inputObj$testflag <- TRUE
 inputObj$valflag  <- FALSE
 
-set.seed(inputObj$seed)
+#set.seed(inputObj$seed)
 
 tic()
 simObj   <- initialization_module(inputObj)
@@ -64,7 +68,7 @@ if (!is.null(file_loc_link)) {
 
 }
 
-#link_county_abm.df %>% is.na() %>% sum()
+link_county_abm.df %>% is.na() %>% sum()
 
 # simObj$popdf %>% nrow()
 #
@@ -118,6 +122,29 @@ trans_tree.df = bind_rows(trans_tree.df %>%
                                    ID2 = as.character(ID2)))
 
 
+#####
+simObj$trans_tree %>% nrow()
+x = simObj$trans_tree %>% group_by(month) %>% summarize(infects = n())
+plot(x)
+
+trans_tree_demo.df = left_join(simObj$trans_tree, bind_rows(simObj$popdf %>% select(id, gender, risk, age, race),
+                                                            simObj$popdf_dead) %>% select(id, risk),
+                               by = join_by(ID2 == id))
+
+trans_tree_demo.df = trans_tree_demo.df %>%
+  mutate(year = case_when(month %in% c(1:12) ~ 2019,
+                          month %in% c(13:24) ~ 2020,
+                          month %in% c(25:36) ~ 2021))
+
+trans_tree_demo.df %>%
+  group_by(month, risk, year) %>%
+  summarize(infects = n()) %>%
+  ungroup() %>%
+  group_by(risk, year) %>%
+  summarize(tot_infects = sum(infects)) %>%
+  mutate(per = tot_infects/(simObj$trans_tree %>% nrow()))
+
+#####
 
 #saveRDS(simData, "../results/rw_216months_7_26_22.rds")
 #saveRDS(simObj, "../results/rw_216months_7_26_22_simObj.rds")
@@ -146,24 +173,7 @@ edge_list.df = simObj$trans_tree %>%
   rename(from = ID1,
          to = ID2)
 
-#####
-simObj$trans_tree %>% nrow()
-x = simObj$trans_tree %>% group_by(month) %>% summarize(infects = n())
-plot(x)
 
-trans_tree_demo.df = left_join(simObj$trans_tree, bind_rows(simObj$popdf %>% select(id, gender, risk, age, race),
-                                                            simObj$popdf_dead) %>% select(id, risk),
-                               by = join_by(ID2 == id))
-
-trans_tree_demo.df %>%
-  group_by(month, risk) %>%
-  summarize(infects = n()) %>%
-  ungroup() %>%
-  group_by(risk) %>%
-  summarize(tot_infects = sum(infects)) %>%
-  mutate(per = tot_infects/(simObj$trans_tree %>% nrow()))
-
-#####
 
 edge_list.df$width <- 1+links$weight/8 # line width
 edge_list.df$color <- "gray"    # line color
