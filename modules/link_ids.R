@@ -18,10 +18,10 @@ link_create <- function(file_loc_link, simObj) {
                                            `Stage 6`,
                                            `Stage 7`,
                                            `Diagnosis year`,
-                                          agegroup_MT,
-                                           gender_MT,
-                                           risk_MT,
-                                           race_MT))
+                                          agegroup,
+                                           gender,
+                                           risk,
+                                           race))
 
   demographics = demographics %>%
     filter(Stage %in% c(3,4,5,6))
@@ -121,32 +121,34 @@ link_create <- function(file_loc_link, simObj) {
     filter(stage %in% c("suppress", "left", "diag", "care", "dead")) %>%
     select(id, agegroup, gender, race, risk)
 
-  county_demo.df <- demographics %>%
-    rename(agegroup = agegroup_MT,
-           gender = gender_MT,
-           race = race_MT,
-           risk = risk_MT)
+  county_demo.df <- demographics
 
-  county_demo.df = county_demo.df %>%
-    mutate(gender = case_when(
-      gender == "Male" ~ "male",
-      gender == "Female" ~ "female",
-              .default = NA))
-
-  county_demo.df = county_demo.df %>%
-    mutate(agegroup = case_when(
-      agegroup == "Older Adult (55-100)" ~ "olderadult",
-      agegroup == "Adult (25-54)" ~ "adult",
-      agegroup == "Youth (13-24)" ~ "youth",
-      .default = NA))
-
-  county_demo.df = county_demo.df %>%
-    mutate(risk = case_when(
-      risk == "MSM" ~ "MSM",
-      risk == "other" ~ "other",
-      risk == "MSMandIDU" ~ "MSMandIDU",
-      risk == "IDU" ~ "IDU",
-      .default = NA))
+  # county_demo.df <- demographics %>%
+  #   rename(agegroup = agegroup_MT,
+  #          gender = gender_MT,
+  #          race = race_MT,
+  #          risk = risk_MT)
+  #
+  # county_demo.df = county_demo.df %>%
+  #   mutate(gender = case_when(
+  #     gender == "Male" ~ "male",
+  #     gender == "Female" ~ "female",
+  #             .default = NA))
+  #
+  # county_demo.df = county_demo.df %>%
+  #   mutate(agegroup = case_when(
+  #     agegroup == "Older Adult (55-100)" ~ "olderadult",
+  #     agegroup == "Adult (25-54)" ~ "adult",
+  #     agegroup == "Youth (13-24)" ~ "youth",
+  #     .default = NA))
+  #
+  # county_demo.df = county_demo.df %>%
+  #   mutate(risk = case_when(
+  #     risk == "MSM" ~ "MSM",
+  #     risk == "other" ~ "other",
+  #     risk == "MSMandIDU" ~ "MSMandIDU",
+  #     risk == "IDU" ~ "IDU",
+  #     .default = NA))
 
   county_demo_lim.df = county_demo.df %>%
     rename(Diagnosis_year = `Diagnosis year`) %>%

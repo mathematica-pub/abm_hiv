@@ -26,7 +26,7 @@ for (fl in list.files("./modules")) {
 file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/data_11_02_2023.xlsx"
 #file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/data_v2_copy_val.xlsx"
 
-file_loc_link = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/demogaphics_11_02_2023.csv"
+file_loc_link = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/demogaphics_11_02_2023_v2.csv"
 #file_loc_link = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/sd_county_demographics.csv"
 
 inputObj <- input_module(origin = file_loc_input)
