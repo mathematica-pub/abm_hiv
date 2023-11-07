@@ -164,35 +164,43 @@ generate_s_net_R <- function(network_type,
 
   dcsbm_pi = as.numeric(tabulate(deg_seq_net$block, nbins = (dcsbm_B %>% nrow())))/nrow(deg_seq_net)
 
-  if (nrow(deg_seq_net) > 0) {
-    g = dcsbm(
-      theta = as.numeric(dcsbm_theta),
-      B = dcsbm_B,
-      expected_density = (sum(dcsbm_theta)/2)/choose(length(dcsbm_theta),2),
-      pi = dcsbm_pi,
-      sort_nodes = FALSE,
-      poisson_edges = FALSE,
-      allow_self_loops = FALSE
-    )
+  if (nrow(deg_seq_net) > 0 & sum(as.numeric(dcsbm_theta)) > 4) {
+    error_flag = TRUE
+    while(error_flag) {
+      tryCatch({g = dcsbm(
+        theta = as.numeric(dcsbm_theta),
+        B = dcsbm_B,
+        expected_density = (sum(dcsbm_theta)/2 - 1)/choose(length(dcsbm_theta),2),
+        pi = dcsbm_pi,
+        sort_nodes = FALSE,
+        poisson_edges = FALSE,
+        allow_self_loops = FALSE
+      )
+      break}, error_flag = TRUE)
+    }
 
     edgelist <- sample_edgelist(g)
 
-    net.edgelist = left_join(edgelist, deg_seq_net %>% select(id, networkx_id),
-                             by = join_by(from == networkx_id)) %>%
-      select(-from) %>%
-      rename(source = id) %>%
-      left_join(deg_seq_net %>% select(id, networkx_id),
-                by = join_by(to == networkx_id)) %>%
-      select(-to) %>%
-      rename(target = id)
+    if (nrow(edgelist) > 0) {
+      net.edgelist = left_join(edgelist, deg_seq_net %>% select(id, networkx_id),
+                               by = join_by(from == networkx_id)) %>%
+        select(-from) %>%
+        rename(source = id) %>%
+        left_join(deg_seq_net %>% select(id, networkx_id),
+                  by = join_by(to == networkx_id)) %>%
+        select(-to) %>%
+        rename(target = id)
 
-    # Temp = left_join(edgelist, deg_seq_net %>% select(id, networkx_id),
-    #                         by = join_by(from == networkx_id)) %>%
-    #  rename(source = id) %>%
-    #  left_join(deg_seq_net %>% select(id, networkx_id),
-    #            by = join_by(to == networkx_id)) %>%
-    #  rename(target = id)
-
+      # Temp = left_join(edgelist, deg_seq_net %>% select(id, networkx_id),
+      #                         by = join_by(from == networkx_id)) %>%
+      #  rename(source = id) %>%
+      #  left_join(deg_seq_net %>% select(id, networkx_id),
+      #            by = join_by(to == networkx_id)) %>%
+      #  rename(target = id)
+    } else {
+      net.edgelist = tibble(source = NULL,
+                            target = NULL)
+    }
     return(net.edgelist)
   } else {
     return(net.edgelist = tibble(source = NULL,

@@ -23,10 +23,10 @@ for (fl in list.files("./modules")) {
 }
 
 #file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/RWHAP_Equity-feat-add_equity_outcomes/inputs_2019/user_inputs_Current_RWHAP - 200K - PrEP.xlsx"
-file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/data_11_02_2023.xlsx"
-#file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/data_v2_copy_val.xlsx"
+#file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/data_11_02_2023.xlsx"
+file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/data_error_v1.xlsx"
 
-file_loc_link = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/demogaphics_11_02_2023_v2.csv"
+file_loc_link = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/demogaphics_11_02_2023.csv"
 #file_loc_link = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/sd_county_demographics.csv"
 
 inputObj <- input_module(origin = file_loc_input)
@@ -34,7 +34,7 @@ inputObj <- input_module(origin = file_loc_input)
 inputObj$testflag <- TRUE
 inputObj$valflag  <- FALSE
 
-#set.seed(inputObj$seed)
+set.seed(inputObj$seed)
 
 tic()
 simObj   <- initialization_module(inputObj)
