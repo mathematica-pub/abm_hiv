@@ -18,104 +18,19 @@ link_create <- function(file_loc_link, simObj) {
                                            `Stage 6`,
                                            `Stage 7`,
                                            `Diagnosis year`,
-                                          agegroup,
-                                           gender,
-                                           risk,
-                                           race))
+                                          agegroup_MT,
+                                           gender_MT,
+                                           risk_MT,
+                                           race_MT))
+
+  demographics = demographics %>%
+    rename(agegroup = agegroup_MT,
+           gender = gender_MT,
+           risk = risk_MT,
+           race = race_MT)
 
   demographics = demographics %>%
     filter(Stage %in% c(3,4,5,6))
-#  %>%
-#    filter(!is.na(agegroup_MT)) %>%
-#    filter(!is.na(gender_MT)) %>%
-#    filter(!is.na(risk_MT)) %>%
-#    filter(!is.na(race_MT))
-
-#  demographics %>% nrow()
-
-  # demographics = read_delim(file_loc_link,
-  #                           delim = ",",
-  #                           col_select = c(UCI,
-  #                                          cur_in_sd_county,
-  #                                          alive_1_1_2019,
-  #                                          `Diagnosis year`,
-  #                                          dob_fmt,
-  #                                          race,
-  #                                          birth_sex,
-  #                                          `Exposure Category`),
-  #                           show_col_types = FALSE) %>%
-  #   rename(UCSD_id = UCI )
-
-  # demographics = demographics %>% filter(cur_in_sd_county == 1,
-  #                                        alive_1_1_2019 == 1,
-  #                                        `Diagnosis year` < 2019)
-
-  #seed_seq = read_csv("/Users/ravigoyal/Downloads/seed_tree_IDs.txt",
-  #                    col_names = FALSE)
-  #temp = intersect(seed_seq$X1, demographics$UCSD_id)
-
-  #link = read_tsv("/Users/ravigoyal/Downloads/tmp/abm_hiv_id_map.tsv")
-
-  #temp = intersect(seed_seq$X1, link_county_abm.df$UCSD_id)
-  #temp = intersect(seed_seq$X1, link$UCSD_id)
-
-  #change the labels in the converted string to whatever categories you want.
-  # transmission.conversion <- data.frame(raw = c('MSM',
-  #                                               'IDU',
-  #                                               'MSM & IDU',
-  #                                               'Other',
-  #                                               'No reported risk',
-  #                                               'Heterosexual contact',
-  #                                               'Perinatal exposure'),
-  #                                       converted = c('MSM',
-  #                                                     'IDU',
-  #                                                     'MSMandIDU',
-  #                                                     'other',
-  #                                                     NA,
-  #                                                     'other',
-  #                                                     'other'))
-  #
-  # gender.conversion <- data.frame(raw = c('M',
-  #                                         'F'),
-  #                                 converted = c('male',
-  #                                               'female'))
-  #
-  # #change the labels in the converted string to whatever categories you want.
-  # # race.cats <-data.frame(raw = c(1:8),
-  # #                        converted = c('Hispanic, any race',
-  # #                                               'Not Hispanic, American Indian/Alaska Native',
-  # #                                               'Not Hispanic, Asian',
-  # #                                               'Not Hispanic, Black',
-  # #                                               'Not Hispanic, Native Hawaiian/Pacific Islander',
-  # #                                               'Not Hispanic, White',
-  # #                                               'Not Hispanic, Legacy Asian/Pacific Islander',
-  # #                                               'Not Hispanic, Multi-race'))
-  #
-  # race.cats <-data.frame(raw = c(1:8),
-  #                        converted = c('hispanic',
-  #                                      'other',
-  #                                      'other',
-  #                                      'black',
-  #                                      'other',
-  #                                      'other',
-  #                                      'other',
-  #                                      'other'))
-  #
-  # county_demo.df <- demographics %>% as_tibble %>%
-  #   mutate(age = as.numeric(difftime(as.Date("01/01/2019", "%m/%d/%Y"), dob_fmt)/365.25),
-  #          agegroup = case_when(age < 24 ~ "youth",
-  #                               age < 55 ~ "adult",
-  #                               TRUE ~ "olderadult"),
-  #          race = as.character(factor(race,levels = race.cats$raw,
-  #                                     labels = race.cats$converted)),
-  #          gender = as.character(factor(birth_sex ,levels = gender.conversion$raw,
-  #                                       labels = gender.conversion$converted)),
-  #          risk = as.character(factor(`Exposure Category`,levels = transmission.conversion$raw,
-  #                                     labels = transmission.conversion$converted))) %>%
-  #   select(UCSD_id, agegroup, gender, race, risk)
-
-  #table(county_demo.df$risk, useNA = "ifany")
-  #table(county_demo.df$gender, useNA = "ifany")
 
   diag_init_cov.df <- simObj$popdf %>%
     filter(stage %in% c("suppress", "left", "diag", "care", "dead")) %>%
@@ -123,32 +38,34 @@ link_create <- function(file_loc_link, simObj) {
 
   county_demo.df <- demographics
 
-  # county_demo.df <- demographics %>%
-  #   rename(agegroup = agegroup_MT,
-  #          gender = gender_MT,
-  #          race = race_MT,
-  #          risk = risk_MT)
-  #
-  # county_demo.df = county_demo.df %>%
-  #   mutate(gender = case_when(
-  #     gender == "Male" ~ "male",
-  #     gender == "Female" ~ "female",
-  #             .default = NA))
-  #
-  # county_demo.df = county_demo.df %>%
-  #   mutate(agegroup = case_when(
-  #     agegroup == "Older Adult (55-100)" ~ "olderadult",
-  #     agegroup == "Adult (25-54)" ~ "adult",
-  #     agegroup == "Youth (13-24)" ~ "youth",
-  #     .default = NA))
-  #
-  # county_demo.df = county_demo.df %>%
-  #   mutate(risk = case_when(
-  #     risk == "MSM" ~ "MSM",
-  #     risk == "other" ~ "other",
-  #     risk == "MSMandIDU" ~ "MSMandIDU",
-  #     risk == "IDU" ~ "IDU",
-  #     .default = NA))
+  county_demo.df = county_demo.df %>%
+    mutate(gender = case_when(
+      gender == "Male" ~ "male",
+      gender == "Female" ~ "female",
+              .default = NA))
+
+  county_demo.df = county_demo.df %>%
+    mutate(agegroup = case_when(
+      agegroup == "Older Adult (55-100)" ~ "olderadult",
+      agegroup == "Adult (25-54)" ~ "adult",
+      agegroup == "Youth (13-24)" ~ "youth",
+      .default = NA))
+
+  county_demo.df = county_demo.df %>%
+    mutate(risk = case_when(
+      risk == "MSM (No IDU)" ~ "MSM",
+      risk == "Other" ~ "other",
+      risk == "MSM & IDU" ~ "MSMandIDU",
+      risk == "IDU (No MSM)" ~ "IDU",
+      risk == "No reported risk" ~ NA,
+      .default = NA))
+
+  county_demo.df = county_demo.df %>%
+    mutate(race = case_when(
+      race == "Other" ~ "other",
+      race == "Black (non-Hispanic)" ~ "black",
+      race == "Hispanic" ~ "hispanic",
+      .default = NA))
 
   county_demo_lim.df = county_demo.df %>%
     rename(Diagnosis_year = `Diagnosis year`) %>%
@@ -162,7 +79,7 @@ link_create <- function(file_loc_link, simObj) {
 
   county_demo.df = complete(county_demo_imp.df,1)
 
-  #sapply(county_demo_temp.df, function(x) sum(is.na(x)))
+  #sapply(county_demo_lim.df, function(x) sum(is.na(x)))
 
   #agegroup_i = "olderadult"
   #gender_i = "male"
