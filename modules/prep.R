@@ -5,7 +5,7 @@ initialize_prep <- function(simObj, origin) {
                      idu = NULL,
                      nonmsm = NULL)
 
-  indices = c(4,5,7,8,10,11,12,13,15,16,17,18)
+  indices = c(4,5,7,8,10,11,12,13,15,16,17,18,19)
   param_names = c("indication_per",
                   "start_per",
                   "growth_per",
@@ -17,7 +17,8 @@ initialize_prep <- function(simObj, origin) {
                   "adherence_reduction_no",
                   "adherence_reduction_low",
                   "adherence_reduction_med",
-                  "adherence_reduction_high")
+                  "adherence_reduction_high",
+                  "growth_start_month")
 
   for (counter in c(1:length(indices))) {
 
@@ -61,7 +62,7 @@ initialize_prep <- function(simObj, origin) {
                                        prep_info))
 
   prep.df = bind_rows(prep.df,
-                      prep_init_sample(risk_group = "msm",
+                      prep_init_sample(risk_group = "idu",
                                        id_neg = simObj$negpopdf %>%
                                          filter(risk == "MSMandIDU") %>%
                                          pull(id),
@@ -141,7 +142,7 @@ prep_update <- function(simObj) {
     select(-update_use)
 
   #Start PrEP
-  prep_start.df = left_join(simObj$prep_info %>%
+  prep_start.df = left_join(left_join(simObj$prep_info %>%
                               filter(param == "growth_per") %>%
                               select(-param) %>%
                               pivot_longer(cols = c("msm", "idu", "nonmsm"),
@@ -153,8 +154,16 @@ prep_update <- function(simObj) {
                               pivot_longer(cols = c("msm", "idu", "nonmsm"),
                                            names_to = "risk",
                                            values_to = "start_per"),
+                            by = "risk"),
+                            simObj$prep_info %>%
+                              filter(param == "growth_start_month") %>%
+                              select(-param) %>%
+                              pivot_longer(cols = c("msm", "idu", "nonmsm"),
+                                           names_to = "risk",
+                                           values_to = "growth_start_month"),
                             by = "risk") %>%
-    mutate(current_per = (growth_per/12) *simObj$month + start_per)
+    mutate(current_per = (growth_per/12) *max(0, simObj$month-growth_start_month) + start_per) %>%
+    select(-growth_start_month)
 
   prep_need.df = left_join(simObj$prep_id %>%
                              group_by(risk) %>%

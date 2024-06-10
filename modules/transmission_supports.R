@@ -42,7 +42,7 @@ transmission_module_spread_HIV <- function(simObj, Net_name, trans_prob) {
     simObj$networks[[Net_name]] <- left_join(simObj$networks[[Net_name]],
                                              simObj$prep_id %>% filter(use == 1) %>% select(id, reduction),
                                              by = c("ID2" = "id")) %>%
-      mutate(trans_prob = ifelse(!(is.na(reduction)),trans_prob*reduction, trans_prob)) %>%
+      mutate(trans_prob = ifelse(!(is.na(reduction)),trans_prob*(1-reduction), trans_prob)) %>%
       select(-reduction)
   }
 
