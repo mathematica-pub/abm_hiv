@@ -22,13 +22,13 @@ for (fl in list.files("./modules")) {
   }
 }
 
-for (excel_file in (list.files("/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/Results_manuscript/Inputs_files_03_09_24"))[1:4]) {
+for (excel_file in (list.files("/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/Results_manuscript/Inputs_files_03_09_24_no_int"))[4]) {
 
 #file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/RWHAP_Equity-feat-add_equity_outcomes/inputs_2019/user_inputs_Current_RWHAP - 200K - PrEP.xlsx"
 #file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/data.best.epi_11_10_23.xlsx"
 #file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/data_01_08_2024.xlsx"
 #file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/data_error_v1.xlsx"
-file_loc_input = paste("/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/Results_manuscript/Inputs_files_03_09_24/", excel_file, sep = "")
+file_loc_input = paste("/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/Results_manuscript/Inputs_files_03_09_24_no_int/", excel_file, sep = "")
 
 file_loc_link = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/demographics_01_08_2024.csv"
 #file_loc_link = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/sd_county_demographics.csv"
@@ -189,13 +189,13 @@ simData_sum_all.df = bind_rows(simData_sum_all.df,
 }
 
 saveRDS(diag_time_demo_sum_all.df,
-        paste("/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/Results_manuscript/Results/", excel_file, "_iter20_diag_int.rds", sep = "")
+        paste("/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/Results_manuscript/Results/", excel_file, "_iter20_diag_no_int.rds", sep = "")
         )
 saveRDS(trans_tree_demo_sum_all.df,
-        paste("/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/Results_manuscript/Results/", excel_file, "_iter20_infects_int.rds", sep = "")
+        paste("/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/Results_manuscript/Results/", excel_file, "_iter20_infects_no_int.rds", sep = "")
         )
 saveRDS(simData_sum.df,
-        paste("/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/Results_manuscript/Results/", excel_file, "_iter20_suppress_prop_int.rds", sep = "")
+        paste("/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/Results_manuscript/Results/", excel_file, "_iter20_suppress_prop_no_int.rds", sep = "")
         )
 
 }
@@ -222,8 +222,8 @@ diag_time_demo_sum_all_e_i.df = NULL
 
 for (excel_file in list.files("/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/Results_manuscript/Inputs_files_03_09_24")) {
 
-  if (excel_file == "data_O4Y4_epigen.xlsx") {
-    diag_time_demo_sum_all_eg_i.df = readRDS("/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/Results_manuscript/Results/data_O4Y4_epigen.xlsx_iter20_diag_int.rds") %>%
+  if (excel_file == "data_O3Y3_epigen.xlsx") {
+    diag_time_demo_sum_all_eg_i.df = readRDS("/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/Results_manuscript/Results/data_O3Y3_epigen.xlsx_iter20_diag_int.rds") %>%
       mutate(sim_type = 'epi_genetic_int') %>%
       mutate(input_file = input_file_counter)
   } else {
@@ -247,8 +247,8 @@ diag_time_demo_sum_all_e.df = NULL
 
 for (excel_file in list.files("/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/Results_manuscript/Inputs_files_03_09_24_no_int")) {
 
-  if (excel_file == "data_O4Y4_epigen.xlsx") {
-    diag_time_demo_sum_all_eg.df = readRDS("/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/Results_manuscript/Results/data_O4Y4_epigen.xlsx_iter20_diag_no_int.rds") %>%
+  if (excel_file == "data_O3Y3_epigen.xlsx") {
+    diag_time_demo_sum_all_eg.df = readRDS("/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/Results_manuscript/Results/data_O3Y3_epigen.xlsx_iter20_diag_no_int.rds") %>%
       mutate(sim_type = 'epi_genetic') %>%
       mutate(input_file = input_file_counter)
   } else {
@@ -343,8 +343,8 @@ inf_time_demo_sum_all_e_i.df = NULL
 
 for (excel_file in list.files("/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/Results_manuscript/Inputs_files_03_09_24")) {
 
-  if (excel_file == "data_O4Y4_epigen.xlsx") {
-    inf_time_demo_sum_all_eg_i.df = readRDS("/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/Results_manuscript/Results/data_O4Y4_epigen.xlsx_iter20_infects_int.rds") %>%
+  if (excel_file == "data_O3Y3_epigen.xlsx") {
+    inf_time_demo_sum_all_eg_i.df = readRDS("/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/Results_manuscript/Results/data_O3Y3_epigen.xlsx_iter20_infects_int.rds") %>%
       mutate(sim_type = 'epi_genetic_int') %>%
       mutate(input_file = input_file_counter)
   } else {
@@ -367,8 +367,8 @@ inf_time_demo_sum_all_e.df = NULL
 
 for (excel_file in list.files("/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/Results_manuscript/Inputs_files_03_09_24_no_int")) {
 
-  if (excel_file == "data_O4Y4_epigen.xlsx") {
-    inf_time_demo_sum_all_eg.df = readRDS("/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/Results_manuscript/Results/data_O4Y4_epigen.xlsx_iter20_infects_no_int.rds") %>%
+  if (excel_file == "data_O3Y3_epigen.xlsx") {
+    inf_time_demo_sum_all_eg.df = readRDS("/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/Results_manuscript/Results/data_O3Y3_epigen.xlsx_iter20_infects_no_int.rds") %>%
       mutate(sim_type = 'epi_genetic') %>%
       mutate(input_file = input_file_counter)
   } else {
@@ -526,7 +526,7 @@ dev.off()
 inf_time_demo_sum_mean.df = inf_time_demo_sum_all.df %>%
   group_by(risk, sim_type, year) %>%
   summarize(sum_inf= mean(tot_infects)) %>%
-  filter(year %in% c(2024,2025,2026,2027,2028,2030)) %>%
+  filter(year %in% c(2024,2025,2026,2027,2028,2029, 2030)) %>%
   summarize(sum_inf= sum(sum_inf)) %>%
   pivot_wider(names_from = sim_type, values_from = sum_inf) %>%
   mutate(epi_genetic_reduce = (epi_genetic-epi_genetic_int)/epi_genetic * 100,
