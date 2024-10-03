@@ -167,16 +167,18 @@ generate_s_net_R <- function(network_type,
   if (nrow(deg_seq_net) > 0 & sum(as.numeric(dcsbm_theta)) > 4) {
     error_flag = TRUE
     while(error_flag) {
-      tryCatch({g = dcsbm(
-        theta = as.numeric(dcsbm_theta),
-        B = dcsbm_B,
-        expected_density = (sum(dcsbm_theta)/2 - 1)/choose(length(dcsbm_theta),2),
-        pi = dcsbm_pi,
-        sort_nodes = FALSE,
-        poisson_edges = FALSE,
-        allow_self_loops = FALSE
-      )
-      break}, error_flag = TRUE)
+      tryCatch({
+        g = dcsbm(
+          theta = as.numeric(dcsbm_theta),
+          B = dcsbm_B,
+          expected_density = (sum(dcsbm_theta)/2 - 1)/choose(length(dcsbm_theta),2),
+          pi = dcsbm_pi,
+          sort_nodes = FALSE,
+          poisson_edges = FALSE,
+          allow_self_loops = FALSE
+        )
+        error_flag = FALSE
+      }, error = function(e) {error_flag = TRUE})
     }
 
     edgelist <- sample_edgelist(g)
