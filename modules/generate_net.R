@@ -29,11 +29,20 @@ generate_s_net_R <- function(network_type,
         mutate(MSM_partners = MSM_evolve_partners)
 
       factor_1_assort = simObj$trans_params$Assortativity_MSM %>% filter(`Age Category` == "risk") %>% pull(Value)
-      factor_2_assort = NULL
+      # factor_2_assort = NULL
+      #
+      # deg_seq_net = deg_seq_net %>%
+      #   mutate(block = case_when((risk == "MSM") ~ 1,
+      #                            (risk == "MSMandIDU") ~ 2)) %>%
+      #   arrange(block)
+
+      factor_2_assort = simObj$trans_params$Assortativity_MSM %>% filter(`Age Category` == "hiv_status") %>% pull(Value)
 
       deg_seq_net = deg_seq_net %>%
-        mutate(block = case_when((risk == "MSM") ~ 1,
-                                 (risk == "MSMandIDU") ~ 2)) %>%
+        mutate(block = case_when((risk == "MSM" & hiv_status == "0") ~ 1,
+                                 (risk == "MSM" & hiv_status == "1") ~ 2,
+                                 (risk == "MSMandIDU" & hiv_status == "0") ~ 3,
+                                 (risk == "MSMandIDU" & hiv_status == "1") ~ 4)) %>%
         arrange(block)
     }
     # deg_seq_net = deg_seq_net %>%
@@ -69,13 +78,27 @@ generate_s_net_R <- function(network_type,
         mutate(HET_partners = HET_evolve_partners)
 
       factor_1_assort = simObj$trans_params$Assortativity_nonMSM %>% filter(`Age Category` == "Risk") %>% pull(Value)
-      factor_2_assort = NULL
+      # factor_2_assort = NULL
+      #
+      # deg_seq_net = deg_seq_net %>%
+      #   mutate(block = case_when((gender == "female" & risk == "other") ~ 1,
+      #                            (gender == "female" & risk == "IDU") ~ 2,
+      #                            (gender == "male" & risk == "other") ~ 3,
+      #                            (gender == "male" & risk == "IDU") ~ 4
+      #   )) %>%
+      #   arrange(block)
+
+      factor_2_assort = simObj$trans_params$Assortativity_nonMSM %>% filter(`Age Category` == "HIV_status") %>% pull(Value)
 
       deg_seq_net = deg_seq_net %>%
-        mutate(block = case_when((gender == "female" & risk == "other") ~ 1,
-                                 (gender == "female" & risk == "IDU") ~ 2,
-                                 (gender == "male" & risk == "other") ~ 3,
-                                 (gender == "male" & risk == "IDU") ~ 4
+        mutate(block = case_when((gender == "female" & risk == "other" & hiv_status == "0") ~ 1,
+                                 (gender == "female" & risk == "other" & hiv_status == "1") ~ 2,
+                                 (gender == "female" & risk == "IDU" & hiv_status == "0") ~ 3,
+                                 (gender == "female" & risk == "IDU" & hiv_status == "1") ~ 4,
+                                 (gender == "male" & risk == "other" & hiv_status == "0") ~ 5,
+                                 (gender == "male" & risk == "other" & hiv_status == "1") ~ 6,
+                                 (gender == "male" & risk == "IDU" & hiv_status == "0") ~ 7,
+                                 (gender == "male" & risk == "IDU" & hiv_status == "1") ~ 8
         )) %>%
         arrange(block)
     }
@@ -113,13 +136,27 @@ generate_s_net_R <- function(network_type,
         filter(MSMW_partners > 0)
 
       factor_1_assort = simObj$trans_params$Assortativity_nonMSM %>% filter(`Age Category` == "Risk") %>% pull(Value)
-      factor_2_assort = NULL
+      # factor_2_assort = NULL
+      #
+      # deg_seq_net = deg_seq_net %>%
+      #   mutate(block = case_when((gender == "female" & risk == "other") ~ 1,
+      #                            (gender == "female" & risk == "IDU") ~ 2,
+      #                            (gender == "male" & risk == "MSM") ~ 3,
+      #                            (gender == "male" & risk == "MSMandIDU") ~ 4
+      #   )) %>%
+      #   arrange(block)
+
+      factor_2_assort = simObj$trans_params$Assortativity_nonMSM %>% filter(`Age Category` == "HIV_status") %>% pull(Value)
 
       deg_seq_net = deg_seq_net %>%
-        mutate(block = case_when((gender == "female" & risk == "other") ~ 1,
-                                 (gender == "female" & risk == "IDU") ~ 2,
-                                 (gender == "male" & risk == "MSM") ~ 3,
-                                 (gender == "male" & risk == "MSMandIDU") ~ 4
+        mutate(block = case_when((gender == "female" & risk == "other" & hiv_status == "0") ~ 1,
+                                 (gender == "female" & risk == "other" & hiv_status == "1") ~ 2,
+                                 (gender == "female" & risk == "IDU" & hiv_status == "0") ~ 3,
+                                 (gender == "female" & risk == "IDU" & hiv_status == "1") ~ 4,
+                                 (gender == "male" & risk == "MSM" & hiv_status == "0") ~ 5,
+                                 (gender == "male" & risk == "MSM" & hiv_status == "1") ~ 6,
+                                 (gender == "male" & risk == "MSMandIDU" & hiv_status == "0") ~ 7,
+                                 (gender == "male" & risk == "MSMandIDU" & hiv_status == "1") ~ 8
         )) %>%
         arrange(block)
     }
@@ -171,7 +208,7 @@ generate_s_net_R <- function(network_type,
     deg_seq_net_expanded_rand <- sample_n(deg_seq_net_expanded, nrow(deg_seq_net_expanded), replace = FALSE)
     deg_seq_net_expanded_rand$index = c(1:nrow(deg_seq_net_expanded_rand))
 
-    block_sizes = table(deg_seq_net_expanded_rand$block)
+    block_sizes = tabulate(deg_seq_net_expanded_rand$block, nbins = 8)
     net.edgelist = NULL
 
     if (network_type %in% c("MSM", "IDU")) {
@@ -215,15 +252,26 @@ generate_s_net_R <- function(network_type,
                                target = j_links %>% pull(id))
           deg_seq_net_expanded_rand = deg_seq_net_expanded_rand %>%
             filter(!index %in% i_links$index)
+          deg_seq_net_expanded_rand = deg_seq_net_expanded_rand %>%
+            filter(!index %in% j_links$index)
 
           net.edgelist = bind_rows(net.edgelist, edgelist_ij)
         }
       }
 
       if (nrow(deg_seq_net_expanded_rand) > 2) {
-        edgelist_ij = tibble(source = deg_seq_net_expanded_rand[c(1:floor(nrow(deg_seq_net_expanded_rand)/2)), ] %>% pull(id),
-                             target = deg_seq_net_expanded_rand[c((floor(nrow(deg_seq_net_expanded_rand)/2)+1):(2*(floor(nrow(deg_seq_net_expanded_rand)/2)))), ] %>% pull(id))
-        net.edgelist = bind_rows(net.edgelist, edgelist_ij)
+
+        deg_seq_net_expanded_rand_F = deg_seq_net_expanded_rand %>%
+          filter(gender == "female")
+        deg_seq_net_expanded_rand_M = deg_seq_net_expanded_rand %>%
+          filter(gender == "male")
+        num_edge_pairs = min(nrow(deg_seq_net_expanded_rand_F),
+                             nrow(deg_seq_net_expanded_rand_M))
+        if (num_edge_pairs > 0) {
+          edgelist_ij = tibble(source = deg_seq_net_expanded_rand_F[c(1:num_edge_pairs), ] %>% pull(id),
+                               target = deg_seq_net_expanded_rand_M[c(1:num_edge_pairs), ] %>% pull(id))
+          net.edgelist = bind_rows(net.edgelist, edgelist_ij)
+        }
       }
     }
 
@@ -290,7 +338,8 @@ generate_dcsbm_b_matrix <- function(network_type,
                                   factor_2_assort) {
 
   if (network_type %in% c("MSM", "HET", "MSMW")) {
-    if (init_net == TRUE) {
+    if (TRUE) {
+    #if (init_net == TRUE) {
 
       dcsbm_B = matrix(data = c(factor_1_assort*factor_2_assort,
                                 factor_1_assort*(1-factor_2_assort),
