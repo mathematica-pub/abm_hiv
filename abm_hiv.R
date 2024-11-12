@@ -26,16 +26,20 @@ for (excel_file in (list.files("/Users/ravigoyal/Dropbox/Academic/Research/Proje
 
 #file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/RWHAP_Equity-feat-add_equity_outcomes/inputs_2019/user_inputs_Current_RWHAP - 200K - PrEP.xlsx"
 #file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/data.best.epi_11_10_23.xlsx"
-#file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/data_01_08_2024.xlsx"
+file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/data_10_15_2024.xlsx"
 #file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/data_error_v1.xlsx"
-file_loc_input = paste("/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/Results_manuscript/Inputs_files_03_09_24_no_int/", excel_file, sep = "")
+#file_loc_input = paste("/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/Results_manuscript/Inputs_files_03_09_24_no_int/", excel_file, sep = "")
 
 file_loc_link = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/demographics_01_08_2024.csv"
 #file_loc_link = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/sd_county_demographics.csv"
 
+file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/data_test.xlsx"
+
 diag_time_demo_sum_all.df = NULL
 trans_tree_demo_sum_all.df = NULL
 simData_sum_all.df = NULL
+
+Miamiflag = FALSE
 
 for (sim_iter in c(1:50)) {
 
@@ -53,7 +57,7 @@ toc()
 simObj   <- initialize_prep(simObj,
                             origin = file_loc_input)
 
-trans_tree.df <- tibble(ID1 = "None",
+simObj$notrans_tree.df <- tibble(ID1 = "None",
                         ID2 = simObj$popdf$id,
                         month = 0)
 
@@ -99,6 +103,9 @@ link_county_abm.df %>% is.na() %>% sum()
 
 simData <- data.frame(list())
 
+h_MSM = c()
+source("~/Dropbox/Academic/Research/Projects/ABM_HIV/abm_hiv/testing_networks.R")
+
 print("Starting simulation...")
 print(paste("Month: ", "0", sep = ""))
 if (simObj$duration < 1) {
@@ -118,7 +125,11 @@ if (simObj$duration < 1) {
     simObj <- health_state_module(simObj)
     simObj <- outcomes_module(simObj)
     simObj <- prep_update(simObj)
+    if (Miamiflag == TRUE) {
+      simObj <- migration(simObj)
+    }
     simData <- bind_rows(simData, collapse_module(simObj))
+    h_MSM = c(h_MSM, homophily_check(simObj))
     toc()
   }
 }
@@ -188,15 +199,15 @@ simData_sum_all.df = bind_rows(simData_sum_all.df,
                                simData_sum.df)
 }
 
-saveRDS(diag_time_demo_sum_all.df,
-        paste("/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/Results_manuscript/Results/", excel_file, "_iter20_diag_no_int.rds", sep = "")
-        )
-saveRDS(trans_tree_demo_sum_all.df,
-        paste("/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/Results_manuscript/Results/", excel_file, "_iter20_infects_no_int.rds", sep = "")
-        )
-saveRDS(simData_sum.df,
-        paste("/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/Results_manuscript/Results/", excel_file, "_iter20_suppress_prop_no_int.rds", sep = "")
-        )
+# saveRDS(diag_time_demo_sum_all.df,
+#         paste("/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/Results_manuscript/Results/", excel_file, "_iter20_diag_no_int.rds", sep = "")
+#         )
+# saveRDS(trans_tree_demo_sum_all.df,
+#         paste("/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/Results_manuscript/Results/", excel_file, "_iter20_infects_no_int.rds", sep = "")
+#         )
+# saveRDS(simData_sum.df,
+#         paste("/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/Results_manuscript/Results/", excel_file, "_iter20_suppress_prop_no_int.rds", sep = "")
+#         )
 
 }
 
