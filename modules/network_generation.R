@@ -21,13 +21,14 @@ generate_s_net <- function(simObj, init_net) {
     simObj$popdf = left_join(simObj$popdf,
                              demo_partner.df,
                              by = join_by("risk" == "risk"),
-                             relationship = "many-to-many")
+                             relationship = "many-to-one")
 
     simObj$negpopdf = left_join(simObj$negpopdf,
                                 demo_partner.df,
                                 by = join_by("risk" == "risk"),
-                                relationship = "many-to-many")
+                                relationship = "many-to-one")
 
+    #Identify who are MSMW among MSM/MSMandIDU
     simObj$popdf$MSMW = sample(as.integer(c(0,1)),
                              nrow(simObj$popdf),
                              prob =c(1-simObj$trans_params$MSMW_prob,
@@ -61,6 +62,7 @@ generate_s_net <- function(simObj, init_net) {
 
     if (init_net == TRUE) {
 
+      #Removing previous columns: in case going through while loop multiple times
       simObj$popdf = simObj$popdf %>%
         select(-any_of(c("IDU_init_partners")))
       simObj$negpopdf = simObj$negpopdf %>%
@@ -71,6 +73,7 @@ generate_s_net <- function(simObj, init_net) {
         mutate(mean_IDU_partners = simObj$trans_params$Poisson_mean_IDU) %>%
         select(id, mean_IDU_partners)
 
+      #Adding number of IDU partners for all IDU
       popdf_TEMP$IDU_init_partners = as.integer(rpois(nrow(popdf_TEMP), lambda = popdf_TEMP$mean_IDU_partners))
       simObj$popdf = left_join(simObj$popdf,
                                popdf_TEMP %>% select(id, IDU_init_partners),
@@ -115,6 +118,7 @@ generate_s_net <- function(simObj, init_net) {
 
     if (init_net == TRUE) {
 
+      #Removing previous columns: in case going through while loop multiple times
       simObj$popdf = simObj$popdf %>%
         select(-any_of(c("MSM_init_partners")))
       simObj$negpopdf = simObj$negpopdf %>%

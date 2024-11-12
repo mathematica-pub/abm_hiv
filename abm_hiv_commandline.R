@@ -10,6 +10,11 @@ file_loc_link <- args[3]
 #file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/data_v2.xlsx"
 #file_loc_link = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/demographics.csv"
 
+#file_loc_input = "/Users/ravigoyal/Downloads/bad_data.xlsx"
+#file_loc_link = "/Users/ravigoyal/Downloads/bad_demographics.csv"
+#file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/data_test.xlsx"
+
+
 library(gtools)
 library(ensurer)
 library(truncnorm)
@@ -27,6 +32,8 @@ for (fl in list.files(file_loc_source)) {
   source(paste(file_loc_source , fl, sep = "/"))
 }
 
+Miamiflag = FALSE
+
 inputObj <- input_module(origin = file_loc_input)
 
 
@@ -41,9 +48,9 @@ simObj   <- initialization_module(inputObj)
 simObj   <- initialize_prep(simObj,
                             origin = file_loc_input)
 
-trans_tree.df <- tibble(ID1 = "None",
-                        ID2 = simObj$popdf$id,
-                        month = 0)
+simObj$notrans_tree.df <- tibble(ID1 = "None",
+                                 ID2 = simObj$popdf$id,
+                                 month = 0)
 
 simObj$trans_tree <- tibble(ID1 = integer(),
                             ID2 = integer(),
@@ -85,6 +92,9 @@ if (simObj$duration < 1) {
     simObj <- health_state_module(simObj)
     simObj <- outcomes_module(simObj)
     simObj <- prep_update(simObj)
+    if (Miamiflag == TRUE) {
+      simObj <- migration(simObj)
+    }
     simData <- bind_rows(simData, collapse_module(simObj))
     toc()
   }
@@ -117,7 +127,7 @@ calibration_output %>% as.data.frame() %>% print(quote = FALSE, row.names = FALS
 
 sprintf("Transmission tree...")
 
-trans_tree.df = bind_rows(trans_tree.df %>%
+trans_tree.df = bind_rows(simObj$notrans_tree.df %>%
                             mutate(ID2 = as.character(ID2)),
                           simObj$trans_tree %>%
                             mutate(ID1 = as.character(ID1),

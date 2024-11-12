@@ -36,10 +36,10 @@ generate_s_net_R <- function(network_type,
                                  (risk == "MSMandIDU") ~ 2)) %>%
         arrange(block)
     }
-    deg_seq_net = deg_seq_net %>%
-      mutate(networkx_id = c(1:(n())))
+    # deg_seq_net = deg_seq_net %>%
+    #   mutate(networkx_id = c(1:(n())))
 
-    dcsbm_theta = deg_seq_net$MSM_partners
+    deg_seq_net$num_partners = deg_seq_net$MSM_partners
   } else if (network_type == "HET") {
 
     if (init_net == TRUE) {
@@ -79,10 +79,10 @@ generate_s_net_R <- function(network_type,
         )) %>%
         arrange(block)
     }
-    deg_seq_net = deg_seq_net %>%
-      mutate(networkx_id = c(1:(n())))
+    # deg_seq_net = deg_seq_net %>%
+    #   mutate(networkx_id = c(1:(n())))
 
-    dcsbm_theta = deg_seq_net$HET_partners
+    deg_seq_net$num_partners = deg_seq_net$HET_partners
 
   } else if (network_type == "MSMW") {
     if (init_net == TRUE) {
@@ -124,12 +124,12 @@ generate_s_net_R <- function(network_type,
         arrange(block)
     }
 
-    if (nrow(deg_seq_net) > 0) {
-      deg_seq_net = deg_seq_net %>%
-        mutate(networkx_id = c(1:(n())))
-    }
+    # if (nrow(deg_seq_net) > 0) {
+    #   deg_seq_net = deg_seq_net %>%
+    #     mutate(networkx_id = c(1:(n())))
+    # }
 
-    dcsbm_theta = deg_seq_net$MSMW_partners
+    deg_seq_net$num_partners = deg_seq_net$MSMW_partners
 
   } else if (network_type == "IDU") {
     if (init_net == TRUE) {
@@ -147,51 +147,124 @@ generate_s_net_R <- function(network_type,
     } else {
       print("ERROR")
     }
-    deg_seq_net = deg_seq_net %>%
-      mutate(networkx_id = c(1:(n())))
+    # deg_seq_net = deg_seq_net %>%
+    #   mutate(networkx_id = c(1:(n())))
 
-    dcsbm_theta = deg_seq_net$IDU_partners
+    deg_seq_net$num_partners = deg_seq_net$IDU_partners
 
   } else {
     print("ERROR")
   }
 
-  dcsbm_B = generate_dcsbm_b_matrix(network_type,
-                                    init_net,
-                                    factor_1_assort,
-                                    factor_2_assort) %>%
+  dcsbm_B_unnorm = generate_dcsbm_b_matrix(network_type,
+                                           init_net,
+                                           factor_1_assort,
+                                           factor_2_assort) %>%
     as.matrix()
 
-  dcsbm_pi = as.numeric(tabulate(deg_seq_net$block, nbins = (dcsbm_B %>% nrow())))/nrow(deg_seq_net)
+  # Duplicate rows based on 'num_partners' column
+  deg_seq_net = deg_seq_net %>%
+    filter(num_partners > 0)
 
-  if (nrow(deg_seq_net) > 0 & sum(as.numeric(dcsbm_theta)) > 4) {
-    error_flag = TRUE
-    while(error_flag) {
-      tryCatch({
-        g = dcsbm(
-          theta = as.numeric(dcsbm_theta),
-          B = dcsbm_B,
-          expected_density = (sum(dcsbm_theta)/2 - 1)/choose(length(dcsbm_theta),2),
-          pi = dcsbm_pi,
-          sort_nodes = FALSE,
-          poisson_edges = FALSE,
-          allow_self_loops = FALSE
-        )
-        error_flag = FALSE
-      }, error = function(e) {error_flag = TRUE})
+  if (nrow(deg_seq_net) > 0) {
+    deg_seq_net_expanded <- deg_seq_net[rep(1:nrow(deg_seq_net), deg_seq_net$num_partners), ]
+    deg_seq_net_expanded_rand <- sample_n(deg_seq_net_expanded, nrow(deg_seq_net_expanded), replace = FALSE)
+    deg_seq_net_expanded_rand$index = c(1:nrow(deg_seq_net_expanded_rand))
+
+    block_sizes = table(deg_seq_net_expanded_rand$block)
+    net.edgelist = NULL
+
+    if (network_type %in% c("MSM", "IDU")) {
+      for (i in c(1:max(deg_seq_net$block))) {
+        linkage_prob = dcsbm_B_unnorm[i,i]
+        num_links = floor(linkage_prob*block_sizes[i])
+        if (num_links > 0) {
+          i_links = sample_n(deg_seq_net_expanded_rand %>% filter(block == i),
+                             num_links,
+                             replace = FALSE)
+          edgelist_ii = tibble(source = i_links[c(1:floor(nrow(i_links)/2)), ] %>% pull(id),
+                               target = i_links[c((floor(nrow(i_links)/2)+1):(2*(floor(nrow(i_links)/2)))), ] %>% pull(id))
+          deg_seq_net_expanded_rand = deg_seq_net_expanded_rand %>%
+            filter(!index %in% i_links$index)
+
+          net.edgelist = bind_rows(net.edgelist, edgelist_ii)
+        }
+      }
+
+      if (nrow(deg_seq_net_expanded_rand) > 2) {
+        edgelist_ij = tibble(source = deg_seq_net_expanded_rand[c(1:floor(nrow(deg_seq_net_expanded_rand)/2)), ] %>% pull(id),
+                             target = deg_seq_net_expanded_rand[c((floor(nrow(deg_seq_net_expanded_rand)/2)+1):(2*(floor(nrow(deg_seq_net_expanded_rand)/2)))), ] %>% pull(id))
+        net.edgelist = bind_rows(net.edgelist, edgelist_ij)
+      }
     }
 
-    edgelist <- sample_edgelist(g)
+    if (network_type %in% c("MSMW", "HET")) {
+      num_blocks = max(deg_seq_net$block)
+      for (i in c(1:(num_blocks/2))) {
+        linkage_prob = dcsbm_B_unnorm[i,i + num_blocks/2]
+        num_links = min(floor(linkage_prob*block_sizes[i]), block_sizes[i+ num_blocks/2])
 
-    if (nrow(edgelist) > 0) {
-      net.edgelist = left_join(edgelist, deg_seq_net %>% select(id, networkx_id),
-                               by = join_by(from == networkx_id)) %>%
-        select(-from) %>%
-        rename(source = id) %>%
-        left_join(deg_seq_net %>% select(id, networkx_id),
-                  by = join_by(to == networkx_id)) %>%
-        select(-to) %>%
-        rename(target = id)
+        if (num_links > 0) {
+          i_links = sample_n(deg_seq_net_expanded_rand %>% filter(block == i),
+                             num_links,
+                             replace = FALSE)
+          j_links = sample_n(deg_seq_net_expanded_rand %>% filter(block == (i + num_blocks/2)),
+                             num_links,
+                             replace = FALSE)
+          edgelist_ij = tibble(source = i_links %>% pull(id),
+                               target = j_links %>% pull(id))
+          deg_seq_net_expanded_rand = deg_seq_net_expanded_rand %>%
+            filter(!index %in% i_links$index)
+
+          net.edgelist = bind_rows(net.edgelist, edgelist_ij)
+        }
+      }
+
+      if (nrow(deg_seq_net_expanded_rand) > 2) {
+        edgelist_ij = tibble(source = deg_seq_net_expanded_rand[c(1:floor(nrow(deg_seq_net_expanded_rand)/2)), ] %>% pull(id),
+                             target = deg_seq_net_expanded_rand[c((floor(nrow(deg_seq_net_expanded_rand)/2)+1):(2*(floor(nrow(deg_seq_net_expanded_rand)/2)))), ] %>% pull(id))
+        net.edgelist = bind_rows(net.edgelist, edgelist_ij)
+      }
+    }
+
+    #dcsbm_pi = as.numeric(tabulate(deg_seq_net$block, nbins = (dcsbm_B %>% nrow())))/nrow(deg_seq_net)
+
+    ########
+    #temp = as.numeric(tabulate(deg_seq_net$block, nbins = (dcsbm_B %>% nrow())))
+    #dcsbm_B_dem = temp %*% t(temp)
+    #diag(dcsbm_B_dem) = choose(temp, 2)
+
+    #dcsbm_B = dcsbm_B_unnorm/dcsbm_B_dem
+    ########
+
+    # if (nrow(deg_seq_net) > 0 & sum(as.numeric(dcsbm_theta)) > 4) {
+    #   error_flag = TRUE
+    #   while(error_flag) {
+    #     tryCatch({
+    #       g = dcsbm(
+    #         theta = as.numeric(dcsbm_theta),
+    #         B = dcsbm_B,
+    #         expected_density = (sum(dcsbm_theta)/2 - 1)/choose(length(dcsbm_theta),2),
+    #         pi = dcsbm_pi,
+    #         sort_nodes = TRUE,
+    #         poisson_edges = FALSE,
+    #         allow_self_loops = FALSE
+    #       )
+    #       error_flag = FALSE
+    #     }, error = function(e) {error_flag = TRUE})
+    #   }
+    #
+    #     edgelist <- sample_edgelist(g)
+    if (nrow(net.edgelist) > 0) {
+      # if (nrow(edgelist) > 0) {
+      # net.edgelist = left_join(edgelist, deg_seq_net %>% select(id, networkx_id),
+      #                          by = join_by(from == networkx_id)) %>%
+      #   select(-from) %>%
+      #   rename(source = id) %>%
+      #   left_join(deg_seq_net %>% select(id, networkx_id),
+      #             by = join_by(to == networkx_id)) %>%
+      #   select(-to) %>%
+      #   rename(target = id)
 
       # Temp = left_join(edgelist, deg_seq_net %>% select(id, networkx_id),
       #                         by = join_by(from == networkx_id)) %>%
@@ -205,8 +278,9 @@ generate_s_net_R <- function(network_type,
     }
     return(net.edgelist)
   } else {
-    return(net.edgelist = tibble(source = NULL,
-                                 target = NULL))
+    net.edgelist = tibble(source = NULL,
+                          target = NULL)
+    return(net.edgelist)
   }
 }
 

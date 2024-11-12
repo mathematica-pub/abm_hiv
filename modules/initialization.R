@@ -282,6 +282,27 @@ initialization_module <- function(inputObj) {
   #preSimObj <- initialize_negative_pop(preSimObj)
   preSimObj$negpopdf = initialization_atrisk(inputObj, num_pospop = nrow(fullPop))
 
+  #---Generate geography
+
+  if(Miamiflag == TRUE) {
+    sample.1 <- function(x) {
+      return(sample(c(1:13), size = 1, prob = as.vector(x)))
+    }
+
+    popgeo.df = left_join(preSimObj$popdf, inputObj$georeside,
+                          by = join_by(agegroup, gender, race, risk, stage)) %>%
+      select(id, reside_R1:reside_R13)
+
+    preSimObj$popdf$geo = apply(popgeo.df %>% select(-id), 1, sample.1)
+
+    popgeo.df = left_join(preSimObj$negpopdf, inputObj$georeside %>%
+                            filter(stage == "hiv"),
+                          by = join_by(agegroup, gender, race, risk)) %>%
+      select(id, reside_R1:reside_R13)
+
+    preSimObj$negpopdf$geo = apply(popgeo.df %>% select(-id), 1, sample.1)
+  }
+
   #---Generate Transmission Networks---
   simObj = generate_s_net(preSimObj, init_net=TRUE)
   #simObj$networks$IDU_Net = gen_risk_net(simObj, "IDU")
