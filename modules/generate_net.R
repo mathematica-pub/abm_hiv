@@ -199,6 +199,8 @@ generate_s_net_R <- function(network_type,
                                            factor_2_assort) %>%
     as.matrix()
 
+  num_blocks = nrow(dcsbm_B_unnorm)
+
   # Duplicate rows based on 'num_partners' column
   deg_seq_net = deg_seq_net %>%
     filter(num_partners > 0)
@@ -208,11 +210,11 @@ generate_s_net_R <- function(network_type,
     deg_seq_net_expanded_rand <- sample_n(deg_seq_net_expanded, nrow(deg_seq_net_expanded), replace = FALSE)
     deg_seq_net_expanded_rand$index = c(1:nrow(deg_seq_net_expanded_rand))
 
-    block_sizes = tabulate(deg_seq_net_expanded_rand$block, nbins = 8)
+    block_sizes = tabulate(deg_seq_net_expanded_rand$block, nbins = num_blocks)
     net.edgelist = NULL
 
     if (network_type %in% c("MSM", "IDU")) {
-      for (i in c(1:max(deg_seq_net$block))) {
+      for (i in c(1:num_blocks)) {
         linkage_prob = dcsbm_B_unnorm[i,i]
         num_links = floor(linkage_prob*block_sizes[i])
         if (num_links > 0) {
@@ -236,7 +238,6 @@ generate_s_net_R <- function(network_type,
     }
 
     if (network_type %in% c("MSMW", "HET")) {
-      num_blocks = max(deg_seq_net$block)
       for (i in c(1:(num_blocks/2))) {
         linkage_prob = dcsbm_B_unnorm[i,i + num_blocks/2]
         num_links = min(floor(linkage_prob*block_sizes[i]), block_sizes[i+ num_blocks/2])
