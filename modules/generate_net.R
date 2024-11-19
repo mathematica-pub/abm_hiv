@@ -304,7 +304,8 @@ generate_s_net_R <- function(network_type,
     #   }
     #
     #     edgelist <- sample_edgelist(g)
-    if (nrow(net.edgelist) > 0) {
+    if (!is.null(net.edgelist)) {
+      if (nrow(net.edgelist) > 0) {
       # if (nrow(edgelist) > 0) {
       # net.edgelist = left_join(edgelist, deg_seq_net %>% select(id, networkx_id),
       #                          by = join_by(from == networkx_id)) %>%
@@ -321,6 +322,10 @@ generate_s_net_R <- function(network_type,
       #  left_join(deg_seq_net %>% select(id, networkx_id),
       #            by = join_by(to == networkx_id)) %>%
       #  rename(target = id)
+      } else {
+        net.edgelist = tibble(source = NULL,
+                             target = NULL)
+      }
     } else {
       net.edgelist = tibble(source = NULL,
                             target = NULL)
