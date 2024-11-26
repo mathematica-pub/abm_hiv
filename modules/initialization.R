@@ -195,7 +195,7 @@ initialization_module <- function(inputObj) {
     select(-pop, -roundpop)
 
   if (inputObj$testflag) fullPop <-
-    ensure(fullPop, nrow(fullPop)==inputObj$pospopulationsize)
+    ensure(fullPop, nrow(fullPop)==as.integer(inputObj$pospopulationsize))
 
   #---Generate cd4 counts and precounts for all individuals---
 
