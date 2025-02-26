@@ -34,6 +34,13 @@ file_loc_link = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDie
 #file_loc_link = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/sd_county_demographics.csv"
 
 file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/data_test.xlsx"
+file_loc_input = "/Users/ravigoyal/Downloads/001/inputs/data.xlsx"
+
+file_loc_link = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/ASPIRE/miami_demographics_20241125.csv"
+file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/ASPIRE/Calibration/miami_data_20241208_v11_intervention.xlsx"
+#file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/ASPIRE/Calibration/miami_data_20241208_v11.xlsx"
+
+
 
 diag_time_demo_sum_all.df = NULL
 trans_tree_demo_sum_all.df = NULL
@@ -45,6 +52,8 @@ for (sim_iter in c(1:50)) {
 
 inputObj <- input_module(origin = file_loc_input)
 
+set.seed(inputObj$seed)
+
 inputObj$testflag <- TRUE
 inputObj$valflag  <- FALSE
 
@@ -53,6 +62,12 @@ inputObj$valflag  <- FALSE
 tic()
 simObj   <- initialization_module(inputObj)
 toc()
+
+######
+# TEMP.df = simObj$negpopdf %>%
+#   group_by(risk, gender) %>%
+#   summarise(subpop = n())
+######
 
 simObj   <- initialize_prep(simObj,
                             origin = file_loc_input)
@@ -115,10 +130,34 @@ if (simObj$duration < 1) {
   for (i in 1:simObj$duration) {
     tic()
     print(paste("Month: ", i, sep = ""))
-    #if (i == 61) {
-    #  simObj$stagetransprobs$hiv$betters[1] = simObj$stagetransprobs$hiv$betters[1]*3
-    #  simObj$stagetransprobs$hiv$bettere[1] = simObj$stagetransprobs$hiv$bettere[1]*3
-    #}
+    if (i == 109) {
+      #  simObj$stagetransprobs$hiv$betters[1] = simObj$stagetransprobs$hiv$betters[1]*3
+      #  simObj$stagetransprobs$hiv$bettere[1] = simObj$stagetransprobs$hiv$bettere[1]*3
+
+      gender_risk_order.df = tibble(
+        risk = c("MSM",
+                 "IDU",
+                 "MSMandIDU",
+                 "other",
+                 "IDU",
+                 "other"),
+        gender = c("male", "male", "male", "male", "female", "female"),
+        tests_per_month = c(789.0576341,
+                            789.0576341,
+                            789.0576341,
+                            789.0576341,
+                            789.0576341,
+                            789.0576341)
+      ) %>% left_join(bind_rows(simObj$popdf, simObj$negpopdf) %>%
+                        group_by(risk, gender) %>%
+                        summarize(risk_pop = n())) %>%
+        mutate(test_prob = tests_per_month/risk_pop)
+
+      simObj$stagetransprobs$hiv$betters = gender_risk_order.df$test_prob
+
+      simObj$stagetransprobs$hiv$bettere = gender_risk_order.df$test_prob
+
+    }
     simObj <- increment_module(simObj)
     simObj <- transmission_module(simObj)
     simObj <- care_stage_module(simObj)
@@ -134,8 +173,158 @@ if (simObj$duration < 1) {
   }
 }
 
+
 ######
 
+simData <- inflate_module(simData, simObj$inflation)
+simDataDisc <- discount_module(simData, simObj$discount)
+
+simData <- list(notdisc = simData,
+                disc    = simDataDisc)
+
+sprintf("Printing output...")
+
+sprintf("Calibration metrics...")
+
+calibration_output = left_join(
+  simObj$diag_time %>% filter(event == "diagnosis"),
+  bind_rows(simObj$popdf %>% select(id, gender, risk, age, race),
+            simObj$popdf_dead),
+  by = join_by(ID == id)) %>%
+  group_by(risk, month) %>%
+  summarise(newinfects_agg = n()) %>%
+  mutate(metric = "newinfects_agg") %>%
+  rename("subgroup" = "risk",
+         "stat" = "newinfects_agg") %>%
+  select(metric, month, subgroup, stat)
+
+calibration_output = calibration_output  %>%
+  mutate(year = trunc((month-1)/12)) %>%
+  group_by(subgroup, year) %>%
+  summarize(total_year_sim = sum(stat))
+
+#calibration_output_ind = calibration_output
+
+calibration_output = left_join(
+  simObj$diag_time %>% filter(event == "diagnosis"),
+  bind_rows(simObj$popdf %>% select(id, gender, risk, age, race),
+            simObj$popdf_dead),
+  by = join_by(ID == id)) %>%
+  group_by(race, month) %>%
+  summarise(newinfects_agg = n()) %>%
+  mutate(metric = "newinfects_agg") %>%
+  rename("subgroup" = "race",
+         "stat" = "newinfects_agg") %>%
+  select(metric, month, subgroup, stat)
+
+
+##########
+##########
+
+infect_output <- simData$notdisc %>%
+  group_by(risk, month) %>%
+  summarise(newinfects_agg = sum(newinfects)) %>%
+  pivot_longer(cols = c(newinfects_agg),
+               names_to = "metric",
+               values_to = "stat") %>%
+  ungroup() %>%
+  rename(subgroup = risk) %>%
+  select(metric, month, subgroup, stat)
+
+infect_output = infect_output  %>%
+  mutate(year = trunc((month-1)/12)) %>%
+  group_by(subgroup, year) %>%
+  summarize(total_year_sim = sum(stat))
+
+calibration_output_equal_group = infect_output
+write_csv(calibration_output_equal_group, "/Users/ravigoyal/Dropbox/Academic/Research/Projects/ASPIRE/Calibration/miami_calibration_v11_equal_group.csv")
+
+#calibration_output_equal_ind = read_csv("/Users/ravigoyal/Dropbox/Academic/Research/Projects/ASPIRE/Calibration/miami_calibration_v11_equal_ind.csv")
+#calibration_output_equal_group = read_csv("/Users/ravigoyal/Dropbox/Academic/Research/Projects/ASPIRE/Calibration/miami_calibration_v11_equal_group.csv")
+
+infect_output$total_year_equal_group = calibration_output_equal_group$total_year_sim
+infect_output$total_year_equal_ind = calibration_output_equal_ind$total_year_sim
+infect_output$year = infect_output$year + 2016
+
+infect_output_TEMP = infect_output %>%
+  mutate(total_year_sim = ifelse(year >= 2025, NA, total_year_sim))
+
+custom_labels <- c(
+  "MSM" = "MSM",
+  "MSMandIDU" = "MSM and PWID",
+  "IDU" = "PWID",
+  "other" = "Heterosexual"
+)
+
+ggplot(infect_output_TEMP, aes(x = year)) +
+  geom_line(aes(y = total_year_equal_ind, color = "Status Quo"), size = 1) +
+  geom_line(aes(y = total_year_equal_group, color = "Intervention"), size = 1) +
+  geom_line(aes(y = total_year_sim, color = "Pre-intervention"), size = 1) +
+  geom_vline(xintercept = 2025, linetype = "dotted", color = "black", size = 1) +
+  scale_y_continuous(limits = c(0, 900)) +
+  facet_wrap(~ subgroup, scales = "free_y", labeller = labeller(subgroup = custom_labels)) +
+  labs(
+    title = "Intervention Comparison by Subgroup",
+    x = "Year",
+    y = "Total",
+    color = "Legend"
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position = "bottom",
+    strip.text = element_text(size = 12, face = "bold"),
+    plot.title = element_text(size = 14, face = "bold", hjust = 0.5)
+  )
+
+##########
+##########
+
+file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/ASPIRE/Calibration/miami_calibration_20241202.csv"
+calibration_miami = read_csv(file_loc_input) %>%
+  separate(description, into = c("year", "subgroup"), sep = "_") %>%
+  filter(weight == 1) %>%
+  mutate(year = as.numeric(year) - 2016) %>%
+  rename(total_year_obs = value) %>%
+  select(-weight) %>%
+  mutate(subgroup = ifelse(subgroup == "Other", "other", subgroup))
+
+calibration_compare = left_join(calibration_output,
+                                calibration_miami,
+                                by = c("year", "subgroup")) %>%
+  mutate(diff = total_year_sim - total_year_obs)
+
+calibration_compare %>% View()
+score = sum((calibration_compare$diff)^2)
+score
+
+write_csv(calibration_compare, "/Users/ravigoyal/Dropbox/Academic/Research/Projects/ASPIRE/Calibration/miami_calibration_v11.csv")
+
+custom_labels <- c(
+  "MSM" = "MSM",
+  "MSMandIDU" = "MSM and PWID",
+  "IDU" = "PWID",
+  "other" = "Heterosexual"
+)
+
+ggplot(calibration_compare, aes(x = year+2016)) +
+  geom_line(aes(y = total_year_sim, color = "Simulated"), size = 1) +
+  geom_point(aes(y = total_year_obs, color = "Observed"), shape = 3, size = 3) +
+  scale_y_continuous(limits = c(0, 850)) +
+  facet_wrap(~ subgroup, scales = "free_y", labeller = labeller(subgroup = custom_labels)) +
+  labs(
+    title = "Calibration Comparison by Subgroup",
+    x = "Year",
+    y = "Total",
+    color = "Legend"
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position = "bottom",
+    strip.text = element_text(size = 12, face = "bold"),
+    plot.title = element_text(size = 14, face = "bold", hjust = 0.5)
+  )
+
+######
 print(paste("#########sim_iter: ", sim_iter, sep = ""))
 
 diag_time_demo.df = left_join(

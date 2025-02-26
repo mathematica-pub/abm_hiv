@@ -5,7 +5,7 @@ file_loc_source <- args[1]
 file_loc_input <- args[2]
 file_loc_link <- args[3]
 
-#file_loc_source = "./modules"
+file_loc_source = "./modules"
 #file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/RWHAP_Equity-feat-add_equity_outcomes/inputs_2019/user_inputs_Current_RWHAP - 200K - PrEP.xlsx"
 #file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/data_v2.xlsx"
 #file_loc_link = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/demographics.csv"
@@ -13,6 +13,9 @@ file_loc_link <- args[3]
 #file_loc_input = "/Users/ravigoyal/Downloads/bad_data.xlsx"
 #file_loc_link = "/Users/ravigoyal/Downloads/bad_demographics.csv"
 #file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/data_test.xlsx"
+
+file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/data_10_15_2024.xlsx"
+file_loc_link = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/ASPIRE/miami_demographics_20241125.csv"
 
 
 library(gtools)
@@ -32,7 +35,7 @@ for (fl in list.files(file_loc_source)) {
   source(paste(file_loc_source , fl, sep = "/"))
 }
 
-Miamiflag = FALSE
+Miamiflag = TRUE
 
 inputObj <- input_module(origin = file_loc_input)
 
@@ -92,9 +95,9 @@ if (simObj$duration < 1) {
     simObj <- health_state_module(simObj)
     simObj <- outcomes_module(simObj)
     simObj <- prep_update(simObj)
-    if (Miamiflag == TRUE) {
-      simObj <- migration(simObj)
-    }
+    #if (Miamiflag == TRUE) {
+    #  simObj <- migration(simObj)
+    #}
     simData <- bind_rows(simData, collapse_module(simObj))
     toc()
   }
@@ -112,16 +115,34 @@ sprintf("Printing output...")
 
 sprintf("Calibration metrics...")
 
-calibration_output <- simData$notdisc %>%
+calibration_output_risk = left_join(
+  simObj$diag_time %>% filter(event == "diagnosis"),
+  bind_rows(simObj$popdf %>% select(id, gender, risk, age, race),
+            simObj$popdf_dead),
+  by = join_by(ID == id)) %>%
   group_by(risk, month) %>%
-  summarise(newinfects_agg = sum(newinfects)) %>%
-  pivot_longer(cols = c(newinfects_agg),
-               names_to = "metric",
-               values_to = "stat") %>%
-  ungroup() %>%
-  rename(subgroup = risk) %>%
-  select(metric, month, subgroup, stat)
+  summarise(newinfects_agg = n()) %>%
+  mutate(metric = "newinfects_agg",
+         demographic = "risk") %>%
+  rename("subgroup" = "risk",
+         "stat" = "newinfects_agg") %>%
+  select(metric, demographic, month, subgroup, stat)
 
+calibration_output_race = left_join(
+  simObj$diag_time %>% filter(event == "diagnosis"),
+  bind_rows(simObj$popdf %>% select(id, gender, risk, age, race),
+            simObj$popdf_dead),
+  by = join_by(ID == id)) %>%
+  group_by(race, month) %>%
+  summarise(newinfects_agg = n()) %>%
+  mutate(metric = "newinfects_agg",
+         demographic = "race") %>%
+  rename("subgroup" = "race",
+         "stat" = "newinfects_agg") %>%
+  select(metric, demographic, month, subgroup, stat)
+
+calibration_output = bind_rows(calibration_output_race,
+                               calibration_output_risk)
 
 calibration_output %>% as.data.frame() %>% print(quote = FALSE, row.names = FALSE)
 
@@ -156,8 +177,8 @@ if (is.null(simObj$popdf_dead)) {
     as.data.frame() %>%
     print(quote = FALSE, row.names = FALSE)
 } else {
-  bind_rows(simObj$popdf_dead %>% select(id, gender, risk, age, race),
-            simObj$popdf %>% select(id, gender, risk, age, race)) %>%
+  bind_rows(simObj$popdf_dead %>% select(id, gender, risk, age, race, geo),
+            simObj$popdf %>% select(id, gender, risk, age, race, geo)) %>%
     as.data.frame() %>% print(quote = FALSE, row.names = FALSE)
 }
 

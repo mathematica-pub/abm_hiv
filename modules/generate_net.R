@@ -1,6 +1,6 @@
 
 
-generate_s_net_R <- function(network_type,
+generate_s_net_R_old <- function(network_type,
                              init_net,
                              simObj,
                              Combpop.df
@@ -338,7 +338,7 @@ generate_s_net_R <- function(network_type,
   }
 }
 
-generate_dcsbm_b_matrix <- function(network_type,
+generate_dcsbm_b_matrix_old <- function(network_type,
                                   init_net,
                                   factor_1_assort,
                                   factor_2_assort) {
