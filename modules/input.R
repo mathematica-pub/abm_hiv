@@ -20,7 +20,7 @@ input_module <- function(origin) {
   migration_in    <- read_cell(origin, "High Level Pop + Sim Features",   "E25")
   migration_out  <- read_cell(origin, "High Level Pop + Sim Features",   "E26")
   migration_within    <- read_cell(origin, "High Level Pop + Sim Features",   "E27")
-  geography_all <- read_excel(origin, "Input_sheet", "A1:AW243")
+  geography_all <- read_excel(origin, "Input_sheet", "A1:AW223")
 
   geography_all = geography_all %>%
     mutate(gender = case_when(

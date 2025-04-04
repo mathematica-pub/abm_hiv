@@ -14,8 +14,9 @@ file_loc_link <- args[3]
 #file_loc_link = "/Users/ravigoyal/Downloads/bad_demographics.csv"
 #file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/data_test.xlsx"
 
-#file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/data_10_15_2024.xlsx"
-#file_loc_link = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/ASPIRE/miami_demographics_20241125.csv"
+file_loc_link = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/ASPIRE/Calibration_4_1_2025/Miami_demographics_20250325.csv"
+file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/ASPIRE/Calibration_4_1_2025/miami_data_20241202_template.xlsx"
+
 
 
 library(gtools)
@@ -35,9 +36,11 @@ for (fl in list.files(file_loc_source)) {
   source(paste(file_loc_source , fl, sep = "/"))
 }
 
-Miamiflag = TRUE
+Miamiflag   <- read_cell(file_loc_input, "High Level Pop + Sim Features", "E30")
+migrationflag   <- read_cell(file_loc_input, "High Level Pop + Sim Features", "E31")
 
 inputObj <- input_module(origin = file_loc_input)
+
 
 
 inputObj$testflag <- TRUE
@@ -95,9 +98,9 @@ if (simObj$duration < 1) {
     simObj <- health_state_module(simObj)
     simObj <- outcomes_module(simObj)
     simObj <- prep_update(simObj)
-    #if (Miamiflag == TRUE) {
-    #  simObj <- migration(simObj)
-    #}
+    if (migrationflag == TRUE) {
+      simObj <- migration(simObj)
+    }
     simData <- bind_rows(simData, collapse_module(simObj))
     toc()
   }

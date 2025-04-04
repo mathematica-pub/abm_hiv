@@ -13,7 +13,8 @@ migration <- function(simObj) {
       values_to = "migration_prob",
       values_drop_na = FALSE
     ) %>%
-    mutate(geo = as.integer(geo))
+    mutate(geo = as.integer(geo))  %>%
+    mutate(migration_prob = migration_prob + 0.1)
 
   popgeo.df = left_join(simObj$popdf, TEMP,
                         by = join_by(agegroup, gender, race, risk, stage, geo)) %>%
@@ -53,7 +54,8 @@ migration <- function(simObj) {
       values_to = "migration_prob",
       values_drop_na = FALSE
     ) %>%
-    mutate(geo = as.integer(geo))
+    mutate(geo = as.integer(geo)) %>%
+    mutate(migration_prob = migration_prob + 0.1)
 
   popgeo.df = left_join(simObj$popdf, TEMP,
                         by = join_by(agegroup, gender, race, risk, stage, geo)) %>%
@@ -62,7 +64,7 @@ migration <- function(simObj) {
   popgeo.df = sample_n(popgeo.df,
            size = rpois(n=1, lambda = num_migrationout),
            replace = FALSE,
-           weight = 1-migration_prob) %>%
+           weight = migration_prob) %>%
     select(colnames(simObj$popdf))
 
   simObj$popdf = simObj$popdf %>%
@@ -88,13 +90,14 @@ migration <- function(simObj) {
     select(id, stage, agegroup, gender, race, risk, geo) %>%
     left_join(simObj$georeside,
               by = join_by(stage, agegroup, gender, race, risk),
-              relationship = "many-to-one")
+              relationship = "many-to-one") %>%
+    mutate(across(starts_with("reside_R"), ~ . + 0.1))
 
   sample_TEMP <- function(x) {
     geo_loc = x[1]
     x = x[-1]
     x[geo_loc] = 0
-    if (is.na(x[1])) {
+    if (any(is.na(x))) {
       sample(x = c(1:13),
              size = 1,
              replace = FALSE)
@@ -110,7 +113,6 @@ migration <- function(simObj) {
   migration_within.df$new_geo = apply(migration_within.df %>% select(geo, reside_R1:reside_R13),
         1,
         sample_TEMP)
-
 
   simObj$popdf = left_join(simObj$popdf,
                            migration_within.df %>%

@@ -291,14 +291,14 @@ initialization_module <- function(inputObj) {
 
     popgeo.df = left_join(preSimObj$popdf, inputObj$georeside,
                           by = join_by(agegroup, gender, race, risk, stage)) %>%
-      select(id, reside_R1:reside_R13)
+      select(id, reside_R1:reside_R13) + 1
 
     preSimObj$popdf$geo = apply(popgeo.df %>% select(-id), 1, sample.1)
 
     popgeo.df = left_join(preSimObj$negpopdf, inputObj$georeside %>%
                             filter(stage == "hiv"),
                           by = join_by(agegroup, gender, race, risk)) %>%
-      select(id, reside_R1:reside_R13)
+      select(id, reside_R1:reside_R13) + 1
 
     preSimObj$negpopdf$geo = apply(popgeo.df %>% select(-id), 1, sample.1)
   }

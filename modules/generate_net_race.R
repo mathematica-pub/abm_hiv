@@ -277,6 +277,9 @@ generate_s_net_R <- function(network_type,
     print("ERROR")
   }
 
+  #factor_3_assort = factor_1_assort
+  #factor_1_assort = 1
+
   dcsbm_B_unnorm = generate_dcsbm_b_matrix(network_type,
                                            init_net,
                                            factor_1_assort,
@@ -429,32 +432,57 @@ generate_dcsbm_b_matrix <- function(network_type,
                                     factor_2_assort,
                                     factor_3_assort) {
 
+  factor_3_assort = factor_1_assort
+
   if (network_type %in% c("MSM", "HET", "MSMW")) {
     if (TRUE) {
       #if (init_net == TRUE) {
 
-      dcsbm_B_template = matrix(data = c(factor_1_assort*factor_2_assort,
-                                factor_1_assort*(1-factor_2_assort),
-                                (1-factor_1_assort)*factor_2_assort,
-                                (1-factor_1_assort)*(1-factor_2_assort),
+      dcsbm_B_template = matrix(data = c(factor_2_assort,
+                                         (1-factor_2_assort),
+                                         factor_2_assort,
+                                         (1-factor_2_assort),
 
-                                factor_1_assort*(1-factor_2_assort),
-                                factor_1_assort*(factor_2_assort),
-                                (1-factor_1_assort)*(1-factor_2_assort),
-                                (1-factor_1_assort)*(factor_2_assort),
+                                         (1-factor_2_assort),
+                                         (factor_2_assort),
+                                         (1-factor_2_assort),
+                                         (factor_2_assort),
 
-                                (1-factor_1_assort)*factor_2_assort,
-                                (1-factor_1_assort)*(1-factor_2_assort),
-                                factor_1_assort*factor_2_assort,
-                                factor_1_assort*(1-factor_2_assort),
+                                         factor_2_assort,
+                                         (1-factor_2_assort),
+                                         factor_2_assort,
+                                         (1-factor_2_assort),
 
-                                (1-factor_1_assort)*(1-factor_2_assort),
-                                (1-factor_1_assort)*(factor_2_assort),
-                                factor_1_assort*(1-factor_2_assort),
-                                (factor_1_assort)*(factor_2_assort)
+                                         (1-factor_2_assort),
+                                         (factor_2_assort),
+                                         (1-factor_2_assort),
+                                         (factor_2_assort)
       ),
       nrow = 4,
       ncol = 4)
+
+      # dcsbm_B_template = matrix(data = c(factor_1_assort*factor_2_assort,
+      #                           factor_1_assort*(1-factor_2_assort),
+      #                           (1-factor_1_assort)*factor_2_assort,
+      #                           (1-factor_1_assort)*(1-factor_2_assort),
+      #
+      #                           factor_1_assort*(1-factor_2_assort),
+      #                           factor_1_assort*(factor_2_assort),
+      #                           (1-factor_1_assort)*(1-factor_2_assort),
+      #                           (1-factor_1_assort)*(factor_2_assort),
+      #
+      #                           (1-factor_1_assort)*factor_2_assort,
+      #                           (1-factor_1_assort)*(1-factor_2_assort),
+      #                           factor_1_assort*factor_2_assort,
+      #                           factor_1_assort*(1-factor_2_assort),
+      #
+      #                           (1-factor_1_assort)*(1-factor_2_assort),
+      #                           (1-factor_1_assort)*(factor_2_assort),
+      #                           factor_1_assort*(1-factor_2_assort),
+      #                           (factor_1_assort)*(factor_2_assort)
+      # ),
+      # nrow = 4,
+      # ncol = 4)
 
       dcsbm_B_race = dcsbm_B_template * factor_3_assort
       dcsbm_B_norace = dcsbm_B_template * (1-factor_3_assort)
@@ -487,14 +515,24 @@ generate_dcsbm_b_matrix <- function(network_type,
 
   if (network_type %in% c("IDU")) {
     if (init_net == TRUE) {
-      dcsbm_B = matrix(data = c(factor_1_assort,
-                                (1-factor_1_assort),
-                                (1-factor_1_assort),
-                                factor_1_assort
+
+      dcsbm_B = matrix(data = c(factor_3_assort,
+                                (1-factor_3_assort),
+                                (1-factor_3_assort),
+                                factor_3_assort
 
       ),
       nrow = 2,
       ncol = 2)
+
+      # dcsbm_B = matrix(data = c(factor_1_assort,
+      #                           (1-factor_1_assort),
+      #                           (1-factor_1_assort),
+      #                           factor_1_assort
+      #
+      # ),
+      # nrow = 2,
+      # ncol = 2)
     }
   }
 

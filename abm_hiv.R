@@ -40,13 +40,17 @@ file_loc_link = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/ASPIRE/miam
 file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/ASPIRE/Calibration/miami_data_20241208_v11_intervention.xlsx"
 #file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/ASPIRE/Calibration/miami_data_20241208_v11.xlsx"
 
+file_loc_link = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/ASPIRE/Calibration_4_1_2025/Miami_demographics_20250325.csv"
+file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/ASPIRE/Calibration_4_1_2025/miami_data_20241202_O1Y1_epigen_TT.xlsx"
+
 
 
 diag_time_demo_sum_all.df = NULL
 trans_tree_demo_sum_all.df = NULL
 simData_sum_all.df = NULL
 
-Miamiflag = FALSE
+Miamiflag   <- read_cell(file_loc_input, "High Level Pop + Sim Features", "E30")
+migrationflag   <- read_cell(file_loc_input, "High Level Pop + Sim Features", "E31")
 
 for (sim_iter in c(1:50)) {
 
@@ -164,7 +168,7 @@ if (simObj$duration < 1) {
     simObj <- health_state_module(simObj)
     simObj <- outcomes_module(simObj)
     simObj <- prep_update(simObj)
-    if (Miamiflag == TRUE) {
+    if (migrationflag == TRUE) {
       simObj <- migration(simObj)
     }
     simData <- bind_rows(simData, collapse_module(simObj))
