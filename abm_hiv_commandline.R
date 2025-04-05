@@ -14,8 +14,8 @@ file_loc_link <- args[3]
 #file_loc_link = "/Users/ravigoyal/Downloads/bad_demographics.csv"
 #file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/data_test.xlsx"
 
-file_loc_link = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/ASPIRE/Calibration_4_1_2025/Miami_demographics_20250325.csv"
-file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/ASPIRE/Calibration_4_1_2025/miami_data_20241202_template.xlsx"
+#file_loc_link = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/ASPIRE/Calibration_4_1_2025/Miami_demographics_20250325.csv"
+#file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/ASPIRE/Calibration_4_1_2025/miami_data_20241202_template.xlsx"
 
 
 
@@ -72,6 +72,7 @@ simObj$diag_time <- tibble(ID = simObj$popdf %>%
                              pull(cd4))
 
 simObj$popdf_dead = NULL
+simObj$popdf_migrate = NULL
 
 simData <- data.frame(list())
 
@@ -120,8 +121,9 @@ sprintf("Calibration metrics...")
 
 calibration_output_risk = left_join(
   simObj$diag_time %>% filter(event == "diagnosis"),
-  bind_rows(simObj$popdf %>% select(id, gender, risk, age, race),
+  bind_rows(bind_rows(simObj$popdf %>% select(id, gender, risk, age, race, geo),
             simObj$popdf_dead),
+            simObj$popdf_migrate),
   by = join_by(ID == id)) %>%
   group_by(risk, month) %>%
   summarise(newinfects_agg = n()) %>%
@@ -129,12 +131,14 @@ calibration_output_risk = left_join(
          demographic = "risk") %>%
   rename("subgroup" = "risk",
          "stat" = "newinfects_agg") %>%
-  select(metric, demographic, month, subgroup, stat)
+  select(metric, demographic, month, subgroup, stat) %>%
+  mutate(subgroup = as.factor(subgroup))
 
 calibration_output_race = left_join(
   simObj$diag_time %>% filter(event == "diagnosis"),
-  bind_rows(simObj$popdf %>% select(id, gender, risk, age, race),
+  bind_rows(bind_rows(simObj$popdf %>% select(id, gender, risk, age, race, geo),
             simObj$popdf_dead),
+            simObj$popdf_migrate),
   by = join_by(ID == id)) %>%
   group_by(race, month) %>%
   summarise(newinfects_agg = n()) %>%
@@ -142,10 +146,27 @@ calibration_output_race = left_join(
          demographic = "race") %>%
   rename("subgroup" = "race",
          "stat" = "newinfects_agg") %>%
-  select(metric, demographic, month, subgroup, stat)
+  select(metric, demographic, month, subgroup, stat) %>%
+  mutate(subgroup = as.factor(subgroup))
 
-calibration_output = bind_rows(calibration_output_race,
-                               calibration_output_risk)
+calibration_output_geo = left_join(
+  simObj$diag_time %>% filter(event == "diagnosis"),
+  bind_rows(bind_rows(simObj$popdf %>% select(id, gender, risk, age, race, geo),
+                      simObj$popdf_dead),
+            simObj$popdf_migrate),
+  by = join_by(ID == id)) %>%
+  group_by(geo, month) %>%
+  summarise(newinfects_agg = n()) %>%
+  mutate(metric = "newinfects_agg",
+         demographic = "geo") %>%
+  rename("subgroup" = "geo",
+         "stat" = "newinfects_agg") %>%
+  select(metric, demographic, month, subgroup, stat) %>%
+  mutate(subgroup = as.factor(subgroup))
+
+calibration_output = bind_rows(bind_rows(calibration_output_race,
+                               calibration_output_risk),
+                               calibration_output_geo)
 
 calibration_output %>% as.data.frame() %>% print(quote = FALSE, row.names = FALSE)
 

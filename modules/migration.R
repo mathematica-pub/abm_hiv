@@ -67,6 +67,9 @@ migration <- function(simObj) {
            weight = migration_prob) %>%
     select(colnames(simObj$popdf))
 
+  simObj$popdf_migrate = bind_rows(simObj$popdf_migrate,
+                                   popgeo.df %>% select(id, gender, risk, age, race, geo))
+
   simObj$popdf = simObj$popdf %>%
     filter(id %!in% popgeo.df$id)
 
@@ -147,8 +150,8 @@ migration <- function(simObj) {
     select(-new_geo)
 
   simObj$popdf = simObj$popdf %>%
-      mutate(geo = new_geo) %>%
-      select(-new_geo)
+      mutate(geo = new_geo_2) %>%
+      select(-c(new_geo, new_geo_2))
 
   return(simObj)
 }

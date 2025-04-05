@@ -93,6 +93,9 @@ simObj$diag_time <- tibble(ID = simObj$popdf %>%
                              filter(stage %in% c("suppress", "left", "diag", "care", "dead")) %>%
                              pull(cd4))
 
+simObj$popdf_dead = NULL
+simObj$popdf_migrate = NULL
+
 if (!is.null(file_loc_link)) {
   link_county_abm.df = link_create(file_loc_link, simObj)
 
@@ -192,7 +195,7 @@ sprintf("Calibration metrics...")
 
 calibration_output = left_join(
   simObj$diag_time %>% filter(event == "diagnosis"),
-  bind_rows(simObj$popdf %>% select(id, gender, risk, age, race),
+  bind_rows(simObj$popdf %>% select(id, gender, risk, age, race, geo),
             simObj$popdf_dead),
   by = join_by(ID == id)) %>%
   group_by(risk, month) %>%
@@ -211,7 +214,7 @@ calibration_output = calibration_output  %>%
 
 calibration_output = left_join(
   simObj$diag_time %>% filter(event == "diagnosis"),
-  bind_rows(simObj$popdf %>% select(id, gender, risk, age, race),
+  bind_rows(simObj$popdf %>% select(id, gender, risk, age, race, geo),
             simObj$popdf_dead),
   by = join_by(ID == id)) %>%
   group_by(race, month) %>%
