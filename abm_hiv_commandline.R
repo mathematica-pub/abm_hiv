@@ -172,6 +172,14 @@ calibration_output %>% as.data.frame() %>% print(quote = FALSE, row.names = FALS
 
 sprintf("Transmission tree...")
 
+duplicated_index = which((trans_tree.df$ID2 %>% duplicated) == TRUE)
+if (length(duplicated_index) > 0) {
+  #print("ERROR")
+  #trans_tree.df %>%
+  #  filter(ID2 == as.numeric(trans_tree.df[duplicated_index[1],"ID2"]))
+  trans_tree.df = trans_tree.df[-duplicated_index, ]
+}
+
 trans_tree.df = bind_rows(simObj$notrans_tree.df %>%
                             mutate(ID2 = as.character(ID2)),
                           simObj$trans_tree %>%
@@ -181,12 +189,7 @@ trans_tree.df = bind_rows(simObj$notrans_tree.df %>%
 trans_tree.df %>% as.data.frame() %>% print(quote = FALSE, row.names = FALSE)
 #cat(format(as_tibble(trans_tree.df[c(1:5),]))[-c(1L,3L)], sep = "\n")
 
-duplicated_index = which((trans_tree.df$ID2 %>% duplicated) == TRUE)
-if (length(duplicated_index) > 0) {
-  print("ERROR")
-  #trans_tree.df %>%
-  #  filter(ID2 == as.numeric(trans_tree.df[duplicated_index[1],"ID2"]))
-}
+
 
 sprintf("Sequence sample times...")
 
