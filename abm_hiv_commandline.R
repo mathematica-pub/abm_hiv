@@ -198,14 +198,23 @@ simObj$diag_time %>% select(-cd4) %>%as.data.frame() %>% print(quote = FALSE, ro
 
 sprintf("PLWH demographics...")
 
-if (is.null(simObj$popdf_dead)) {
+if (is.null(simObj$popdf_dead) & is.null(simObj$popdf_migrate)) {
   simObj$popdf %>%
     select(id, gender, risk, age, race) %>%
     as.data.frame() %>%
     print(quote = FALSE, row.names = FALSE)
-} else {
+} else if (is.null(simObj$popdf_dead) & (!is.null(simObj$popdf_migrate))) {
+  bind_rows(simObj$popdf %>% select(id, gender, risk, age, race, geo),
+                      simObj$popdf_migrate %>% select(id, gender, risk, age, race, geo)) %>%
+    as.data.frame() %>% print(quote = FALSE, row.names = FALSE)
+} else if ((!is.null(simObj$popdf_dead)) & (is.null(simObj$popdf_migrate))) {
   bind_rows(simObj$popdf_dead %>% select(id, gender, risk, age, race, geo),
-            simObj$popdf %>% select(id, gender, risk, age, race, geo)) %>%
+                      simObj$popdf %>% select(id, gender, risk, age, race, geo)) %>%
+    as.data.frame() %>% print(quote = FALSE, row.names = FALSE)
+} else {
+  bind_rows(bind_rows(simObj$popdf_dead %>% select(id, gender, risk, age, race, geo),
+            simObj$popdf %>% select(id, gender, risk, age, race, geo),
+            simObj$popdf_migrate %>% select(id, gender, risk, age, race, geo))) %>%
     as.data.frame() %>% print(quote = FALSE, row.names = FALSE)
 }
 
