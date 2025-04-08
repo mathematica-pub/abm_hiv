@@ -5,7 +5,7 @@ file_loc_source <- args[1]
 file_loc_input <- args[2]
 file_loc_link <- args[3]
 
-#file_loc_source = "./modules"
+file_loc_source = "./modules"
 #file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/RWHAP_Equity-feat-add_equity_outcomes/inputs_2019/user_inputs_Current_RWHAP - 200K - PrEP.xlsx"
 #file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/data_v2.xlsx"
 #file_loc_link = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/demographics.csv"
@@ -14,8 +14,8 @@ file_loc_link <- args[3]
 #file_loc_link = "/Users/ravigoyal/Downloads/bad_demographics.csv"
 #file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/data_test.xlsx"
 
-#file_loc_link = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/ASPIRE/Calibration_4_1_2025/Miami_demographics_20250325.csv"
-#file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/ASPIRE/Calibration_4_1_2025/miami_data_20241202_template.xlsx"
+file_loc_link = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/ASPIRE/Calibration_4_1_2025/Miami_demographics_20250325.csv"
+file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/ASPIRE/Calibration_4_1_2025/miami_data_20241202_template.xlsx"
 
 
 
@@ -172,6 +172,12 @@ calibration_output %>% as.data.frame() %>% print(quote = FALSE, row.names = FALS
 
 sprintf("Transmission tree...")
 
+trans_tree.df = bind_rows(simObj$notrans_tree.df %>%
+                            mutate(ID2 = as.character(ID2)),
+                          simObj$trans_tree %>%
+                            mutate(ID1 = as.character(ID1),
+                                   ID2 = as.character(ID2)))
+
 duplicated_index = which((trans_tree.df$ID2 %>% duplicated) == TRUE)
 if (length(duplicated_index) > 0) {
   #print("ERROR")
@@ -179,12 +185,6 @@ if (length(duplicated_index) > 0) {
   #  filter(ID2 == as.numeric(trans_tree.df[duplicated_index[1],"ID2"]))
   trans_tree.df = trans_tree.df[-duplicated_index, ]
 }
-
-trans_tree.df = bind_rows(simObj$notrans_tree.df %>%
-                            mutate(ID2 = as.character(ID2)),
-                          simObj$trans_tree %>%
-                            mutate(ID1 = as.character(ID1),
-                                   ID2 = as.character(ID2)))
 
 trans_tree.df %>% as.data.frame() %>% print(quote = FALSE, row.names = FALSE)
 #cat(format(as_tibble(trans_tree.df[c(1:5),]))[-c(1L,3L)], sep = "\n")
