@@ -26,7 +26,11 @@ migration <- function(simObj) {
                           weight = migration_prob) %>%
     select(colnames(simObj$popdf))
 
-  max_id = max(simObj$popdf$id, simObj$negpopdf$id)
+  max_id = max(c(simObj$popdf$id,
+                 simObj$negpopdf$id,
+                 simObj$trans_tree$ID1,
+                 simObj$trans_tree$ID2,
+                 simObj$notrans_tree.df$ID2))
   migration_in.df$id = c((max_id+1):(max_id+nrow(migration_in.df)))
 
   simObj$popdf = bind_rows(simObj$popdf, migration_in.df)

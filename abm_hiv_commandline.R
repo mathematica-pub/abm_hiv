@@ -180,10 +180,10 @@ trans_tree.df = bind_rows(simObj$notrans_tree.df %>%
 
 duplicated_index = which((trans_tree.df$ID2 %>% duplicated) == TRUE)
 if (length(duplicated_index) > 0) {
-  #print("ERROR")
-  #trans_tree.df %>%
-  #  filter(ID2 == as.numeric(trans_tree.df[duplicated_index[1],"ID2"]))
-  trans_tree.df = trans_tree.df[-duplicated_index, ]
+  print("ERROR")
+  # trans_tree.df %>%
+  #   filter(ID2 == as.numeric(trans_tree.df[duplicated_index[1],"ID2"]))
+  # trans_tree.df = trans_tree.df[-duplicated_index, ]
 }
 
 trans_tree.df %>% as.data.frame() %>% print(quote = FALSE, row.names = FALSE)
