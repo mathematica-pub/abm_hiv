@@ -286,7 +286,11 @@ initialization_module <- function(inputObj) {
 
   if(Miamiflag == TRUE) {
     sample.1 <- function(x) {
-      return(sample(c(1:13), size = 1, prob = as.vector(x)))
+      if (sum(is.na(x)) > 1) {
+        return(sample(c(1:13), size = 1, prob = rep(1,13)))
+      } else {
+        return(sample(c(1:13), size = 1, prob = as.vector(x)))
+      }
     }
 
     popgeo.df = left_join(preSimObj$popdf, inputObj$georeside,

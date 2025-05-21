@@ -30,10 +30,10 @@ file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDi
 #file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/data_error_v1.xlsx"
 #file_loc_input = paste("/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/Results_manuscript/Inputs_files_03_09_24_no_int/", excel_file, sep = "")
 
-file_loc_link = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/demographics_01_08_2024.csv"
+file_loc_link = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/sd_demographics_20240821.csv"
 #file_loc_link = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/sd_county_demographics.csv"
 
-file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/data_test.xlsx"
+file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/sd_data_20250306_O10Y2.xlsx"
 file_loc_input = "/Users/ravigoyal/Downloads/001/inputs/data.xlsx"
 
 file_loc_link = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/ASPIRE/miami_demographics_20241125.csv"
@@ -41,7 +41,9 @@ file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/ASPIRE/Cal
 #file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/ASPIRE/Calibration/miami_data_20241208_v11.xlsx"
 
 file_loc_link = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/ASPIRE/Calibration_4_1_2025/Miami_demographics_20250325.csv"
-file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/ASPIRE/Calibration_4_1_2025/miami_data_20241202_O1Y1_epigen_TT.xlsx"
+#file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/ASPIRE/Calibration_4_1_2025/miami_data_20241202_O1Y1_epigen_TT.xlsx"
+file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/ASPIRE/Results/Incorrect_age/data_MSMincrease.xlsx"
+file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/ASPIRE/Results/Incorrect_age/data_scenario.xlsx"
 
 
 
@@ -121,6 +123,13 @@ link_county_abm.df %>% is.na() %>% sum()
 #   mutate(p_demo = n_demo / n_stage) %>%
 #   View()
 
+# num_tests.df = bind_rows(simObj$popdf, simObj$negpopdf) %>%
+#   group_by(risk, gender) %>%
+#   summarize(risk_pop = n()) %>%
+#   left_join(simObj$stagetransprobs$hiv, by = c("gender", "risk")) %>%
+#   select(c(gender, risk, risk_pop, betters)) %>%
+#   mutate(num_tests = risk_pop*betters)
+
 ####
 
 simData <- data.frame(list())
@@ -137,7 +146,7 @@ if (simObj$duration < 1) {
   for (i in 1:simObj$duration) {
     tic()
     print(paste("Month: ", i, sep = ""))
-    if (i == 109) {
+    if (i == 1) {
       #  simObj$stagetransprobs$hiv$betters[1] = simObj$stagetransprobs$hiv$betters[1]*3
       #  simObj$stagetransprobs$hiv$bettere[1] = simObj$stagetransprobs$hiv$bettere[1]*3
 
@@ -149,12 +158,40 @@ if (simObj$duration < 1) {
                  "IDU",
                  "other"),
         gender = c("male", "male", "male", "male", "female", "female"),
-        tests_per_month = c(789.0576341,
-                            789.0576341,
-                            789.0576341,
-                            789.0576341,
-                            789.0576341,
-                            789.0576341)
+        tests_per_month = c(1359,
+                            85,
+                            106,
+                            490,
+                            70.2,
+                            1229)
+      ) %>% left_join(bind_rows(simObj$popdf, simObj$negpopdf) %>%
+                        group_by(risk, gender) %>%
+                        summarize(risk_pop = n())) %>%
+        mutate(test_prob = tests_per_month/risk_pop)
+
+      simObj$stagetransprobs$hiv$betters = gender_risk_order.df$test_prob
+
+      simObj$stagetransprobs$hiv$bettere = gender_risk_order.df$test_prob
+
+    }
+    if (i == 109) {
+      #  simObj$stagetransprobs$hiv$betters[1] = simObj$stagetransprobs$hiv$betters[1]*3
+      #  simObj$stagetransprobs$hiv$bettere[1] = simObj$stagetransprobs$hiv$bettere[1]*3
+
+      num_tests = c(1359, 85, 106, 490, 70.2, 1229)
+      remove_tests = num_tests*(1-0)
+      add_tests = sum(num_tests) - sum(remove_tests)
+      remove_tests[1] = remove_tests[1] + add_tests
+
+      gender_risk_order.df = tibble(
+        risk = c("MSM",
+                 "IDU",
+                 "MSMandIDU",
+                 "other",
+                 "IDU",
+                 "other"),
+        gender = c("male", "male", "male", "male", "female", "female"),
+        tests_per_month = remove_tests
       ) %>% left_join(bind_rows(simObj$popdf, simObj$negpopdf) %>%
                         group_by(risk, gender) %>%
                         summarize(risk_pop = n())) %>%
@@ -188,6 +225,8 @@ simDataDisc <- discount_module(simData, simObj$discount)
 
 simData <- list(notdisc = simData,
                 disc    = simDataDisc)
+
+saveRDS(simData, "/Users/ravigoyal/Dropbox/Academic/Research/Projects/ASPIRE/Presentation/Status_quo.RDS")
 
 sprintf("Printing output...")
 
@@ -238,7 +277,7 @@ infect_output <- simData$notdisc %>%
   rename(subgroup = risk) %>%
   select(metric, month, subgroup, stat)
 
-infect_output = infect_output  %>%
+infect_output_risk = infect_output  %>%
   mutate(year = trunc((month-1)/12)) %>%
   group_by(subgroup, year) %>%
   summarize(total_year_sim = sum(stat))
@@ -251,7 +290,41 @@ write_csv(calibration_output_equal_group, "/Users/ravigoyal/Dropbox/Academic/Res
 
 infect_output$total_year_equal_group = calibration_output_equal_group$total_year_sim
 infect_output$total_year_equal_ind = calibration_output_equal_ind$total_year_sim
-infect_output$year = infect_output$year + 2016
+
+infect_output_risk$year = infect_output_risk$year + 2016
+infect_output_risk %>% View()
+
+infect_output_risk_wide = infect_output_risk %>% pivot_wider(
+  names_from = year,
+  values_from = total_year_sim
+)
+
+infect_output <- simData$notdisc %>%
+  group_by(race, month) %>%
+  summarise(newinfects_agg = sum(newinfects)) %>%
+  pivot_longer(cols = c(newinfects_agg),
+               names_to = "metric",
+               values_to = "stat") %>%
+  ungroup() %>%
+  rename(subgroup = race) %>%
+  select(metric, month, subgroup, stat)
+
+infect_output_race = infect_output  %>%
+  mutate(year = trunc((month-1)/12)) %>%
+  group_by(subgroup, year) %>%
+  summarize(total_year_sim = sum(stat))
+
+infect_output_race$year = infect_output_race$year + 2016
+infect_output_race %>% View()
+
+infect_output_race_wide = infect_output_race %>% pivot_wider(
+  names_from = year,
+  values_from = total_year_sim
+)
+
+write_csv(bind_rows(infect_output_race_wide, infect_output_risk_wide),
+          file = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/ASPIRE/bruce_table.csv")
+
 
 infect_output_TEMP = infect_output %>%
   mutate(total_year_sim = ifelse(year >= 2025, NA, total_year_sim))

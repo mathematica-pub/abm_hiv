@@ -51,31 +51,34 @@ link_create <- function(file_loc_link, simObj) {
       agegroup == "Youth (13-24)" ~ "youth",
       .default = NA))
 
+  if (sum(county_demo.df$risk %>% unique() %in% c("MSM (No IDU)", "Other", "MSM & IDU", "IDU (No MSM)", "No reported risk")) == 5) {
+    county_demo.df = county_demo.df %>%
+      mutate(risk = case_when(
+        risk == "MSM (No IDU)" ~ "MSM",
+        risk == "Other" ~ "other",
+        risk == "MSM & IDU" ~ "MSMandIDU",
+        risk == "IDU (No MSM)" ~ "IDU",
+        risk == "No reported risk" ~ NA,
+        .default = NA))
+  } else {
+    county_demo.df = county_demo.df %>%
+      mutate(risk = case_when(
+        risk == "MSM" ~ "MSM",
+        risk == "other" ~ "other",
+        risk == "MSMandIDU" ~ "MSMandIDU",
+        risk == "IDU" ~ "IDU",
+        risk == "No reported risk" ~ NA,
+        .default = NA))
+  }
 
-  county_demo.df = county_demo.df %>%
-    mutate(risk = case_when(
-      risk == "MSM" ~ "MSM",
-      risk == "other" ~ "other",
-      risk == "MSMandIDU" ~ "MSMandIDU",
-      risk == "IDU" ~ "IDU",
-      risk == "No reported risk" ~ NA,
-      .default = NA))
-
-  # county_demo.df = county_demo.df %>%
-  #   mutate(risk = case_when(
-  #     risk == "MSM (No IDU)" ~ "MSM",
-  #     risk == "Other" ~ "other",
-  #     risk == "MSM & IDU" ~ "MSMandIDU",
-  #     risk == "IDU (No MSM)" ~ "IDU",
-  #     risk == "No reported risk" ~ NA,
-  #     .default = NA))
-
-  # county_demo.df = county_demo.df %>%
-  #   mutate(race = case_when(
-  #     race == "Other" ~ "other",
-  #     race == "Black (non-Hispanic)" ~ "black",
-  #     race == "Hispanic" ~ "hispanic",
-  #     .default = NA))
+  if (sum(county_demo.df$race %>% unique() %in% c("Other", "Black (non-Hispanic)", "Hispanic")) == 3) {
+    county_demo.df = county_demo.df %>%
+      mutate(race = case_when(
+        race == "Other" ~ "other",
+        race == "Black (non-Hispanic)" ~ "black",
+        race == "Hispanic" ~ "hispanic",
+        .default = NA))
+  }
 
   county_demo_lim.df = county_demo.df %>%
     rename(Diagnosis_year = `Diagnosis year`) %>%

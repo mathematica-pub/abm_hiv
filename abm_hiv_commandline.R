@@ -5,7 +5,7 @@ file_loc_source <- args[1]
 file_loc_input <- args[2]
 file_loc_link <- args[3]
 
-#file_loc_source = "./modules"
+
 #file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/RWHAP_Equity-feat-add_equity_outcomes/inputs_2019/user_inputs_Current_RWHAP - 200K - PrEP.xlsx"
 #file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/data_v2.xlsx"
 #file_loc_link = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/demographics.csv"
@@ -14,9 +14,11 @@ file_loc_link <- args[3]
 #file_loc_link = "/Users/ravigoyal/Downloads/bad_demographics.csv"
 #file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/data_test.xlsx"
 
-#file_loc_link = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/ASPIRE/Calibration_4_1_2025/Miami_demographics_20250325.csv"
 #file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/ASPIRE/Calibration_4_1_2025/miami_data_20241202_template.xlsx"
 
+#file_loc_source = "./modules"
+#file_loc_link = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/ASPIRE/Calibration_4_1_2025/Miami_demographics_20250325.csv"
+#file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/ASPIRE/Results/Incorrect_age/data_MSMincrease.xlsx"
 
 
 library(gtools)
@@ -169,6 +171,17 @@ calibration_output = bind_rows(bind_rows(calibration_output_race,
                                calibration_output_geo)
 
 calibration_output %>% as.data.frame() %>% print(quote = FALSE, row.names = FALSE)
+
+# calibration_output_yr = calibration_output  %>%
+#   mutate(year = trunc((month-1)/12)) %>%
+#   group_by(demographic, subgroup, year) %>%
+#   summarize(total_year_sim = sum(stat))
+# calibration_output_yr$year = calibration_output_yr$year + 2016
+#
+# calibration_output_yr_wide = calibration_output_yr %>%
+#   pivot_wider(
+#     names_from = year,
+#     values_from = total_year_sim)
 
 sprintf("Transmission tree...")
 
