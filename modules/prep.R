@@ -190,5 +190,37 @@ prep_update <- function(simObj) {
     }
   }
 
+  #Test neutral
+
+  test_neutral = simObj$negpopdf %>%
+                select(id, all_of(simObj$HIVtesting$test_category)) %>%
+    group_by(across(all_of(simObj$HIVtesting$test_category))) %>%
+    summarize(num_group = n())
+
+  test_neutral = test_neutral %>%
+    left_join(simObj$HIVtesting$num_tests_cat,
+              by = simObj$HIVtesting$test_category) %>%
+    mutate(test_neutral_prob = (neutral_num*(1-simObj$HIVtesting$pos_neg_test_ratio))/num_group) %>%
+    select(all_of(simObj$HIVtesting$test_category), test_neutral_prob)
+
+  test_neutral$test_neutral_prob = test_neutral$test_neutral_prob *
+    simObj$HIVtesting$prep_referal_uptake_prop
+
+  test_neutral = simObj$negpopdf %>%
+    select(id, all_of(simObj$HIVtesting$test_category)) %>%
+    left_join(test_neutral,
+              by = simObj$HIVtesting$test_category)
+
+  test_neutral = test_neutral %>%
+    mutate(update_use = rbinom(n(), 1, test_neutral_prob)) %>%
+    filter(update_use == 1) %>%
+    select(id, update_use)
+
+  simObj$prep_id = left_join(simObj$prep_id,
+                             test_neutral,
+                             by = c("id" = "id")) %>%
+    mutate(use = ifelse(!(is.na(update_use)),1, use)) %>%
+    select(-update_use)
+
   return(simObj)
 }

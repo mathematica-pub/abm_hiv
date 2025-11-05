@@ -53,6 +53,61 @@ set.seed(inputObj$seed)
 print("Initializing population...")
 simObj   <- initialization_module(inputObj)
 
+###################
+
+#pre_neutral
+simObj$HIVtesting$pre_neutral$num_tests   <- read_cell(file_loc_input, "Testing",   "B4")
+simObj$HIVtesting$pre_neutral$num_tests_neutral  <- read_cell(file_loc_input, "Testing",   "B5")
+simObj$HIVtesting$pre_neutral$prep_referal_uptake_prop    <- read_cell(file_loc_input, "Testing",   "B6")
+simObj$HIVtesting$pre_neutral$start    <- read_cell(file_loc_input, "Testing",   "B8")
+
+#scale_neutral
+simObj$HIVtesting$scale_neutral$num_tests   <- read_cell(file_loc_input, "Testing",   "C4")
+simObj$HIVtesting$scale_neutral$num_tests_neutral  <- read_cell(file_loc_input, "Testing",   "C5")
+simObj$HIVtesting$scale_neutral$prep_referal_uptake_prop    <- read_cell(file_loc_input, "Testing",   "C6")
+simObj$HIVtesting$scale_neutral$start    <- read_cell(file_loc_input, "Testing",   "C8")
+
+#maintain_neutral
+simObj$HIVtesting$maintain_neutral$num_tests   <- read_cell(file_loc_input, "Testing",   "D4")
+simObj$HIVtesting$maintain_neutral$num_tests_neutral  <- read_cell(file_loc_input, "Testing",   "D5")
+simObj$HIVtesting$maintain_neutral$prep_referal_uptake_prop    <- read_cell(file_loc_input, "Testing",   "D6")
+simObj$HIVtesting$maintain_neutral$test_category    <- read_cell(file_loc_input, "Testing",   "D7")
+simObj$HIVtesting$maintain_neutral$start    <- read_cell(file_loc_input, "Testing",   "D8")
+simObj$HIVtesting$maintain_neutral$pos_neg_test_ratio    <- read_cell(file_loc_input, "Testing",   "D9")
+
+if (simObj$HIVtesting$maintain_neutral$test_category == "geo") {
+  simObj$HIVtesting$pre_neutral$num_tests_cat <- read_excel(file_loc_input, "Testing", "B11:F24")
+  simObj$HIVtesting$scale_neutral$num_tests_cat <- bind_cols(simObj$HIVtesting$pre_neutral$num_tests_cat %>% select("group"), read_excel(file_loc_input, "Testing", "G11:J24"))
+  simObj$HIVtesting$maintain_neutral$num_tests_cat <- bind_cols(simObj$HIVtesting$pre_neutral$num_tests_cat %>% select("group"), read_excel(file_loc_input, "Testing", "K11:N24"))
+} else if (simObj$HIVtesting$maintain_neutral$test_category == "risk") {
+  simObj$HIVtesting$pre_neutral$num_tests_cat <- read_excel(file_loc_input, "Testing", "B26:F30")
+  simObj$HIVtesting$scale_neutral$num_tests_cat <- bind_cols(simObj$HIVtesting$pre_neutral$num_tests_cat %>% select("group"), read_excel(file_loc_input, "Testing", "G26:J30"))
+  simObj$HIVtesting$maintain_neutral$num_tests_cat <- bind_cols(simObj$HIVtesting$pre_neutral$num_tests_cat %>% select("group"), read_excel(file_loc_input, "Testing", "K26:N30"))
+} else if (simObj$HIVtesting$maintain_neutral$test_category == "race") {
+  simObj$HIVtesting$pre_neutral$num_tests_cat <- read_excel(file_loc_input, "Testing", "B32:F35")
+  simObj$HIVtesting$scale_neutral$num_tests_cat <- bind_cols(simObj$HIVtesting$pre_neutral$num_tests_cat %>% select("group"), read_excel(file_loc_input, "Testing", "G32:J35"))
+  simObj$HIVtesting$maintain_neutral$num_tests_cat <- bind_cols(simObj$HIVtesting$pre_neutral$num_tests_cat %>% select("group"), read_excel(file_loc_input, "Testing", "K32:N35"))
+} else {
+  print("Error!!")
+}
+
+simObj$stagetransprobs$hiv = tibble(
+  group = simObj$HIVtesting$pre_neutral$num_tests_cat$group,
+  stage = "hiv",
+  betters = 0,
+  bettere = 0,
+  btime = 0,
+  worses = 0,
+  worsee = 0,
+  wtime = 0
+)
+colnames(simObj$stagetransprobs$hiv)[1] = simObj$HIVtesting$maintain_neutral$test_category
+colnames(simObj$HIVtesting$pre_neutral$num_tests_cat)[1] = simObj$HIVtesting$maintain_neutral$test_category
+colnames(simObj$HIVtesting$scale_neutral$num_tests_cat)[1] = simObj$HIVtesting$maintain_neutral$test_category
+colnames(simObj$HIVtesting$maintain_neutral$num_tests_cat)[1] = simObj$HIVtesting$maintain_neutral$test_category
+
+###################
+
 simObj   <- initialize_prep(simObj,
                             origin = file_loc_input)
 
@@ -96,6 +151,49 @@ if (simObj$duration < 1) {
     tic()
     print(paste("Month: ", i, sep = ""))
     simObj <- increment_module(simObj)
+
+    ###################
+    test_rate_change_bool = 0
+    if (simObj$month == simObj$HIVtesting$pre_neutral$start) {
+      simObj$HIVtesting$num_tests   <- simObj$HIVtesting$pre_neutral$num_tests
+      simObj$HIVtesting$num_tests_neutral  <- simObj$HIVtesting$pre_neutral$num_tests_neutral
+      simObj$HIVtesting$prep_referal_uptake_prop    <- simObj$HIVtesting$pre_neutral$prep_referal_uptake_prop
+      simObj$HIVtesting$num_tests_cat <- simObj$HIVtesting$pre_neutral$num_tests_cat
+      simObj$HIVtesting$test_category = simObj$HIVtesting$maintain_neutral$test_category
+      simObj$HIVtesting$pos_neg_test_ratio = simObj$HIVtesting$maintain_neutral$pos_neg_test_ratio
+      test_rate_change_bool = 1
+    } else if (simObj$month == simObj$HIVtesting$scale_neutral$start) {
+      simObj$HIVtesting$num_tests   <- simObj$HIVtesting$scale_neutral$num_tests
+      simObj$HIVtesting$num_tests_neutral  <- simObj$HIVtesting$scale_neutral$num_tests_neutral
+      simObj$HIVtesting$prep_referal_uptake_prop    <- simObj$HIVtesting$scale_neutral$prep_referal_uptake_prop
+      simObj$HIVtesting$num_tests_cat <- simObj$HIVtesting$scale_neutral$num_tests_cat
+      simObj$HIVtesting$test_category = simObj$HIVtesting$maintain_neutral$test_category
+      simObj$HIVtesting$pos_neg_test_ratio = simObj$HIVtesting$maintain_neutral$pos_neg_test_ratio
+      test_rate_change_bool = 1
+    } else if (simObj$month == simObj$HIVtesting$maintain_neutral$start) {
+      simObj$HIVtesting$num_tests   <- simObj$HIVtesting$maintain_neutral$num_tests
+      simObj$HIVtesting$num_tests_neutral  <- simObj$HIVtesting$maintaine_neutral$num_tests_neutral
+      simObj$HIVtesting$prep_referal_uptake_prop    <- simObj$HIVtesting$maintain_neutral$prep_referal_uptake_prop
+      simObj$HIVtesting$num_tests_cat <- simObj$HIVtesting$scale_neutral$num_tests_cat
+      simObj$HIVtesting$test_category = simObj$HIVtesting$maintain_neutral$test_category
+      simObj$HIVtesting$pos_neg_test_ratio = simObj$HIVtesting$maintain_neutral$pos_neg_test_ratio
+      test_rate_change_bool = 1
+    }
+
+    if (test_rate_change_bool == 1) {
+      simObj$stagetransprobs$hiv
+
+      group_testing.df = simObj$HIVtesting$num_tests_cat %>% left_join(simObj$popdf %>%
+                                                                         filter(stage == "hiv") %>%
+                                                                         group_by(across(all_of(simObj$HIVtesting$test_category))) %>%
+                                                                         summarize(group_pop = n())) %>%
+        mutate(test_prob = total_num*simObj$HIVtesting$pos_neg_test_ratio/group_pop)
+
+      simObj$stagetransprobs$hiv$betters = group_testing.df$test_prob
+      simObj$stagetransprobs$hiv$bettere = group_testing.df$test_prob
+    }
+    ###################
+
     simObj <- transmission_module(simObj)
     simObj <- care_stage_module(simObj)
     simObj <- health_state_module(simObj)

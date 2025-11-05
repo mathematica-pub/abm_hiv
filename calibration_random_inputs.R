@@ -74,8 +74,10 @@ set.seed(111)
 ###############################
 ###############################
 
-A_O <- randomLHS(10, 3)
-#A_O[,3] <- qunif(A_O[,3], min = 0.0, max = 0.2)
+set.seed(111)
+
+A_O <- randomLHS(10, 5)
+A_O[,3] <- qunif(A_O[,3], min = 0.0, max = 0.2)
 B_O <- A_O
 
 A_Y <- randomLHS(10, 6)

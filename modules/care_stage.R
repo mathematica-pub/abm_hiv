@@ -25,7 +25,7 @@ care_stage_module <- function(simObj) {
         specific_month_prob(simObj$month, transitionList[[i]])
 
     #Generate merge groups based on the stage doing the merging
-    if      (i == "hiv")      bygroup <- c("stage", "gender", "risk")
+    if      (i == "hiv")      bygroup <- c("stage", simObj$HIVtesting$test_category) #"gender", "risk")
     else if (i == "diag")     bygroup <- c("stage", "oahsart")
     else if (i == "care")     bygroup <- c("stage")
     else if (i == "suppress") bygroup <- c("stage")

@@ -1,452 +1,9 @@
-library(gtools)
-library(ensurer)
-library(truncnorm)
-library(assertthat)
-library(rlang)
-library(readxl)
-library(tidyverse)
-library(tictoc)
-library(reticulate)
-library(fastRG)
-library(mice)
-
-for (fl in list.files("./modules")) {
-  print(fl)
-  file_type = str_split(fl, "\\.")[[1]][2]
-
-  if (file_type == "R") {
-    source(file.path(".", "modules", fl))
-  }
-  if (file_type == "py") {
-    reticulate::source_python(file.path(".", "modules", fl))
-  }
-}
-
-for (excel_file in (list.files("/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/Results_manuscript/Inputs_files_03_09_24_no_int"))[4]) {
-
-#file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/RWHAP_Equity-feat-add_equity_outcomes/inputs_2019/user_inputs_Current_RWHAP - 200K - PrEP.xlsx"
-#file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/data.best.epi_11_10_23.xlsx"
-file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/data_10_15_2024.xlsx"
-#file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/data_error_v1.xlsx"
-#file_loc_input = paste("/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/Results_manuscript/Inputs_files_03_09_24_no_int/", excel_file, sep = "")
-
-file_loc_link = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/sd_demographics_20240821.csv"
-#file_loc_link = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/sd_county_demographics.csv"
-
-file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/sd_data_20250306_O10Y2.xlsx"
-file_loc_input = "/Users/ravigoyal/Downloads/001/inputs/data.xlsx"
-
-file_loc_link = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/ASPIRE/miami_demographics_20241125.csv"
-file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/ASPIRE/Calibration/miami_data_20241208_v11_intervention.xlsx"
-#file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/ASPIRE/Calibration/miami_data_20241208_v11.xlsx"
-
-file_loc_link = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/ASPIRE/Calibration_4_1_2025/Miami_demographics_20250325.csv"
-#file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/ASPIRE/Calibration_4_1_2025/miami_data_20241202_O1Y1_epigen_TT.xlsx"
-file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/ASPIRE/Results/Incorrect_age/data_MSMincrease.xlsx"
-file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/ASPIRE/Results/Incorrect_age/data_scenario.xlsx"
-file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/ASPIRE/Miami_10_29_2025.xlsx"
-
-
-diag_time_demo_sum_all.df = NULL
-trans_tree_demo_sum_all.df = NULL
-simData_sum_all.df = NULL
-
-Miamiflag   <- read_cell(file_loc_input, "High Level Pop + Sim Features", "E30")
-migrationflag   <- read_cell(file_loc_input, "High Level Pop + Sim Features", "E31")
-
-for (sim_iter in c(1:50)) {
-
-inputObj <- input_module(origin = file_loc_input)
-
-set.seed(inputObj$seed)
-
-inputObj$testflag <- TRUE
-inputObj$valflag  <- FALSE
-
-#set.seed(inputObj$seed)
-
-tic()
-simObj   <- initialization_module(inputObj)
-toc()
-
-###################
-
-#pre_neutral
-simObj$HIVtesting$pre_neutral$num_tests   <- read_cell(file_loc_input, "Testing",   "B4")
-simObj$HIVtesting$pre_neutral$num_tests_neutral  <- read_cell(file_loc_input, "Testing",   "B5")
-simObj$HIVtesting$pre_neutral$prep_referal_uptake_prop    <- read_cell(file_loc_input, "Testing",   "B6")
-simObj$HIVtesting$pre_neutral$start    <- read_cell(file_loc_input, "Testing",   "B8")
-
-#scale_neutral
-simObj$HIVtesting$scale_neutral$num_tests   <- read_cell(file_loc_input, "Testing",   "C4")
-simObj$HIVtesting$scale_neutral$num_tests_neutral  <- read_cell(file_loc_input, "Testing",   "C5")
-simObj$HIVtesting$scale_neutral$prep_referal_uptake_prop    <- read_cell(file_loc_input, "Testing",   "C6")
-simObj$HIVtesting$scale_neutral$start    <- read_cell(file_loc_input, "Testing",   "C8")
-
-#maintain_neutral
-simObj$HIVtesting$maintain_neutral$num_tests   <- read_cell(file_loc_input, "Testing",   "D4")
-simObj$HIVtesting$maintain_neutral$num_tests_neutral  <- read_cell(file_loc_input, "Testing",   "D5")
-simObj$HIVtesting$maintain_neutral$prep_referal_uptake_prop    <- read_cell(file_loc_input, "Testing",   "D6")
-simObj$HIVtesting$maintain_neutral$test_category    <- read_cell(file_loc_input, "Testing",   "D7")
-simObj$HIVtesting$maintain_neutral$start    <- read_cell(file_loc_input, "Testing",   "D8")
-simObj$HIVtesting$maintain_neutral$pos_neg_test_ratio    <- read_cell(file_loc_input, "Testing",   "D9")
-
-if (simObj$HIVtesting$maintain_neutral$test_category == "geo") {
-  simObj$HIVtesting$pre_neutral$num_tests_cat <- read_excel(file_loc_input, "Testing", "B11:F24")
-  simObj$HIVtesting$scale_neutral$num_tests_cat <- bind_cols(simObj$HIVtesting$pre_neutral$num_tests_cat %>% select("group"), read_excel(file_loc_input, "Testing", "G11:J24"))
-  simObj$HIVtesting$maintain_neutral$num_tests_cat <- bind_cols(simObj$HIVtesting$pre_neutral$num_tests_cat %>% select("group"), read_excel(file_loc_input, "Testing", "K11:N24"))
-} else if (simObj$HIVtesting$maintain_neutral$test_category == "risk") {
-  simObj$HIVtesting$pre_neutral$num_tests_cat <- read_excel(file_loc_input, "Testing", "B26:F30")
-  simObj$HIVtesting$scale_neutral$num_tests_cat <- bind_cols(simObj$HIVtesting$pre_neutral$num_tests_cat %>% select("group"), read_excel(file_loc_input, "Testing", "G26:J30"))
-  simObj$HIVtesting$maintain_neutral$num_tests_cat <- bind_cols(simObj$HIVtesting$pre_neutral$num_tests_cat %>% select("group"), read_excel(file_loc_input, "Testing", "K26:N30"))
-} else if (simObj$HIVtesting$maintain_neutral$test_category == "race") {
-  simObj$HIVtesting$pre_neutral$num_tests_cat <- read_excel(file_loc_input, "Testing", "B32:F35")
-  simObj$HIVtesting$scale_neutral$num_tests_cat <- bind_cols(simObj$HIVtesting$pre_neutral$num_tests_cat %>% select("group"), read_excel(file_loc_input, "Testing", "G32:J35"))
-  simObj$HIVtesting$maintain_neutral$num_tests_cat <- bind_cols(simObj$HIVtesting$pre_neutral$num_tests_cat %>% select("group"), read_excel(file_loc_input, "Testing", "K32:N35"))
-} else {
-  print("Error!!")
-}
-
-simObj$stagetransprobs$hiv = tibble(
-  group = simObj$HIVtesting$pre_neutral$num_tests_cat$group,
-  stage = "hiv",
-  betters = 0,
-  bettere = 0,
-  btime = 0,
-  worses = 0,
-  worsee = 0,
-  wtime = 0
-)
-colnames(simObj$stagetransprobs$hiv)[1] = simObj$HIVtesting$maintain_neutral$test_category
-colnames(simObj$HIVtesting$pre_neutral$num_tests_cat)[1] = simObj$HIVtesting$maintain_neutral$test_category
-colnames(simObj$HIVtesting$scale_neutral$num_tests_cat)[1] = simObj$HIVtesting$maintain_neutral$test_category
-colnames(simObj$HIVtesting$maintain_neutral$num_tests_cat)[1] = simObj$HIVtesting$maintain_neutral$test_category
-
-###################
-
-simObj   <- initialize_prep(simObj,
-                            origin = file_loc_input)
-
-simObj$notrans_tree.df <- tibble(ID1 = "None",
-                        ID2 = simObj$popdf$id,
-                        month = 0)
-
-simObj$trans_tree <- tibble(ID1 = integer(),
-                            ID2 = integer(),
-                            month = integer())
-
-simObj$diag_time <- tibble(ID = simObj$popdf %>%
-                             filter(stage %in% c("suppress", "left", "diag", "care", "dead")) %>%
-                             pull(id),
-                           month = 0,
-                           event = "initial",
-                           cd4 = simObj$popdf %>%
-                             filter(stage %in% c("suppress", "left", "diag", "care", "dead")) %>%
-                             pull(cd4))
-
-simObj$popdf_dead = NULL
-simObj$popdf_migrate = NULL
-
-if (!is.null(file_loc_link)) {
-  link_county_abm.df = link_create(file_loc_link, simObj)
-
-  #sprintf("Linkages...")
-  #link_county_abm.df %>% as.data.frame() %>% print(quote = FALSE, row.names = FALSE)
-
-}
-
-link_county_abm.df %>% is.na() %>% sum()
-
-# simObj$popdf %>% nrow()
-#
-# simObj$popdf %>%
-#   group_by(stage) %>%
-#   summarise(n_carestage = n())
-#
-# simObj$popdf %>%
-#   filter(stage == "suppress") %>%
-#   group_by(agegroup, gender, race, risk) %>%
-#   summarise(n_demo = n()) %>%
-#   ungroup() %>%
-#   mutate(n_stage = sum(n_demo)) %>%
-#   mutate(p_demo = n_demo / n_stage) %>%
-#   View()
-
-# num_tests.df = bind_rows(simObj$popdf, simObj$negpopdf) %>%
-#   group_by(risk, gender) %>%
-#   summarize(risk_pop = n()) %>%
-#   left_join(simObj$stagetransprobs$hiv, by = c("gender", "risk")) %>%
-#   select(c(gender, risk, risk_pop, betters)) %>%
-#   mutate(num_tests = risk_pop*betters)
-
-####
-
-simData <- data.frame(list())
-
-h_MSM = c()
-source("~/Dropbox/Academic/Research/Projects/ABM_HIV/abm_hiv/testing_networks.R")
-
-print("Starting simulation...")
-print(paste("Month: ", "0", sep = ""))
-if (simObj$duration < 1) {
-  simObj <- outcomes_module(simObj)
-  simData <- bind_rows(simData, collapse_module(simObj))
-} else {
-  for (i in 1:simObj$duration) {
-    tic()
-    print(paste("Month: ", i, sep = ""))
-
-    simObj <- increment_module(simObj)
-
-    test_rate_change_bool = 0
-    if (simObj$month == simObj$HIVtesting$pre_neutral$start) {
-      simObj$HIVtesting$num_tests   <- simObj$HIVtesting$pre_neutral$num_tests
-      simObj$HIVtesting$num_tests_neutral  <- simObj$HIVtesting$pre_neutral$num_tests_neutral
-      simObj$HIVtesting$prep_referal_uptake_prop    <- simObj$HIVtesting$pre_neutral$prep_referal_uptake_prop
-      simObj$HIVtesting$num_tests_cat <- simObj$HIVtesting$pre_neutral$num_tests_cat
-      simObj$HIVtesting$test_category = simObj$HIVtesting$maintain_neutral$test_category
-      simObj$HIVtesting$pos_neg_test_ratio = simObj$HIVtesting$maintain_neutral$pos_neg_test_ratio
-      test_rate_change_bool = 1
-    } else if (simObj$month == simObj$HIVtesting$scale_neutral$start) {
-      simObj$HIVtesting$num_tests   <- simObj$HIVtesting$scale_neutral$num_tests
-      simObj$HIVtesting$num_tests_neutral  <- simObj$HIVtesting$scale_neutral$num_tests_neutral
-      simObj$HIVtesting$prep_referal_uptake_prop    <- simObj$HIVtesting$scale_neutral$prep_referal_uptake_prop
-      simObj$HIVtesting$num_tests_cat <- simObj$HIVtesting$scale_neutral$num_tests_cat
-      simObj$HIVtesting$test_category = simObj$HIVtesting$maintain_neutral$test_category
-      simObj$HIVtesting$pos_neg_test_ratio = simObj$HIVtesting$maintain_neutral$pos_neg_test_ratio
-      test_rate_change_bool = 1
-    } else if (simObj$month == simObj$HIVtesting$maintain_neutral$start) {
-      simObj$HIVtesting$num_tests   <- simObj$HIVtesting$maintain_neutral$num_tests
-      simObj$HIVtesting$num_tests_neutral  <- simObj$HIVtesting$maintaine_neutral$num_tests_neutral
-      simObj$HIVtesting$prep_referal_uptake_prop    <- simObj$HIVtesting$maintain_neutral$prep_referal_uptake_prop
-      simObj$HIVtesting$num_tests_cat <- simObj$HIVtesting$scale_neutral$num_tests_cat
-      simObj$HIVtesting$test_category = simObj$HIVtesting$maintain_neutral$test_category
-      simObj$HIVtesting$pos_neg_test_ratio = simObj$HIVtesting$maintain_neutral$pos_neg_test_ratio
-      test_rate_change_bool = 1
-    }
-
-    if (test_rate_change_bool == 1) {
-      simObj$stagetransprobs$hiv
-
-      group_testing.df = simObj$HIVtesting$num_tests_cat %>% left_join(simObj$popdf %>%
-                                                                         filter(stage == "hiv") %>%
-                                                                         group_by(across(all_of(simObj$HIVtesting$test_category))) %>%
-                                                                         summarize(group_pop = n())) %>%
-        mutate(test_prob = total_num*simObj$HIVtesting$pos_neg_test_ratio/group_pop)
-
-      simObj$stagetransprobs$hiv$betters = group_testing.df$test_prob
-      simObj$stagetransprobs$hiv$bettere = group_testing.df$test_prob
-    }
-
-    simObj <- transmission_module(simObj)
-    simObj <- care_stage_module(simObj)
-    simObj <- health_state_module(simObj)
-    simObj <- outcomes_module(simObj)
-    simObj <- prep_update(simObj)
-    if (migrationflag == TRUE) {
-      simObj <- migration(simObj)
-    }
-    simData <- bind_rows(simData, collapse_module(simObj))
-    h_MSM = c(h_MSM, homophily_check(simObj))
-    toc()
-  }
-}
-
-
-######
-
-simData <- inflate_module(simData, simObj$inflation)
-simDataDisc <- discount_module(simData, simObj$discount)
-
-simData <- list(notdisc = simData,
-                disc    = simDataDisc)
-
-saveRDS(simData, "/Users/ravigoyal/Dropbox/Academic/Research/Projects/ASPIRE/Presentation/Status_quo.RDS")
-
-sprintf("Printing output...")
-
-sprintf("Calibration metrics...")
-
-calibration_output = left_join(
-  simObj$diag_time %>% filter(event == "diagnosis"),
-  bind_rows(simObj$popdf %>% select(id, gender, risk, age, race, geo),
-            simObj$popdf_dead),
-  by = join_by(ID == id)) %>%
-  group_by(risk, month) %>%
-  summarise(newinfects_agg = n()) %>%
-  mutate(metric = "newinfects_agg") %>%
-  rename("subgroup" = "risk",
-         "stat" = "newinfects_agg") %>%
-  select(metric, month, subgroup, stat)
-
-calibration_output = calibration_output  %>%
-  mutate(year = trunc((month-1)/12)) %>%
-  group_by(subgroup, year) %>%
-  summarize(total_year_sim = sum(stat))
-
-#calibration_output_ind = calibration_output
-
-calibration_output = left_join(
-  simObj$diag_time %>% filter(event == "diagnosis"),
-  bind_rows(simObj$popdf %>% select(id, gender, risk, age, race, geo),
-            simObj$popdf_dead),
-  by = join_by(ID == id)) %>%
-  group_by(race, month) %>%
-  summarise(newinfects_agg = n()) %>%
-  mutate(metric = "newinfects_agg") %>%
-  rename("subgroup" = "race",
-         "stat" = "newinfects_agg") %>%
-  select(metric, month, subgroup, stat)
-
-
-##########
-##########
-
-infect_output <- simData$notdisc %>%
-  group_by(risk, month) %>%
-  summarise(newinfects_agg = sum(newinfects)) %>%
-  pivot_longer(cols = c(newinfects_agg),
-               names_to = "metric",
-               values_to = "stat") %>%
-  ungroup() %>%
-  rename(subgroup = risk) %>%
-  select(metric, month, subgroup, stat)
-
-infect_output_risk = infect_output  %>%
-  mutate(year = trunc((month-1)/12)) %>%
-  group_by(subgroup, year) %>%
-  summarize(total_year_sim = sum(stat))
-
-calibration_output_equal_group = infect_output
-write_csv(calibration_output_equal_group, "/Users/ravigoyal/Dropbox/Academic/Research/Projects/ASPIRE/Calibration/miami_calibration_v11_equal_group.csv")
-
-#calibration_output_equal_ind = read_csv("/Users/ravigoyal/Dropbox/Academic/Research/Projects/ASPIRE/Calibration/miami_calibration_v11_equal_ind.csv")
-#calibration_output_equal_group = read_csv("/Users/ravigoyal/Dropbox/Academic/Research/Projects/ASPIRE/Calibration/miami_calibration_v11_equal_group.csv")
-
-infect_output$total_year_equal_group = calibration_output_equal_group$total_year_sim
-infect_output$total_year_equal_ind = calibration_output_equal_ind$total_year_sim
-
-infect_output_risk$year = infect_output_risk$year + 2016
-infect_output_risk %>% View()
-
-infect_output_risk_wide = infect_output_risk %>% pivot_wider(
-  names_from = year,
-  values_from = total_year_sim
-)
-
-infect_output <- simData$notdisc %>%
-  group_by(race, month) %>%
-  summarise(newinfects_agg = sum(newinfects)) %>%
-  pivot_longer(cols = c(newinfects_agg),
-               names_to = "metric",
-               values_to = "stat") %>%
-  ungroup() %>%
-  rename(subgroup = race) %>%
-  select(metric, month, subgroup, stat)
-
-infect_output_race = infect_output  %>%
-  mutate(year = trunc((month-1)/12)) %>%
-  group_by(subgroup, year) %>%
-  summarize(total_year_sim = sum(stat))
-
-infect_output_race$year = infect_output_race$year + 2016
-infect_output_race %>% View()
-
-infect_output_race_wide = infect_output_race %>% pivot_wider(
-  names_from = year,
-  values_from = total_year_sim
-)
-
-write_csv(bind_rows(infect_output_race_wide, infect_output_risk_wide),
-          file = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/ASPIRE/bruce_table.csv")
-
-
-infect_output_TEMP = infect_output %>%
-  mutate(total_year_sim = ifelse(year >= 2025, NA, total_year_sim))
-
-custom_labels <- c(
-  "MSM" = "MSM",
-  "MSMandIDU" = "MSM and PWID",
-  "IDU" = "PWID",
-  "other" = "Heterosexual"
-)
-
-ggplot(infect_output_TEMP, aes(x = year)) +
-  geom_line(aes(y = total_year_equal_ind, color = "Status Quo"), size = 1) +
-  geom_line(aes(y = total_year_equal_group, color = "Intervention"), size = 1) +
-  geom_line(aes(y = total_year_sim, color = "Pre-intervention"), size = 1) +
-  geom_vline(xintercept = 2025, linetype = "dotted", color = "black", size = 1) +
-  scale_y_continuous(limits = c(0, 900)) +
-  facet_wrap(~ subgroup, scales = "free_y", labeller = labeller(subgroup = custom_labels)) +
-  labs(
-    title = "Intervention Comparison by Subgroup",
-    x = "Year",
-    y = "Total",
-    color = "Legend"
-  ) +
-  theme_minimal() +
-  theme(
-    legend.position = "bottom",
-    strip.text = element_text(size = 12, face = "bold"),
-    plot.title = element_text(size = 14, face = "bold", hjust = 0.5)
-  )
-
-##########
-##########
-
-file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/ASPIRE/Calibration/miami_calibration_20241202.csv"
-calibration_miami = read_csv(file_loc_input) %>%
-  separate(description, into = c("year", "subgroup"), sep = "_") %>%
-  filter(weight == 1) %>%
-  mutate(year = as.numeric(year) - 2016) %>%
-  rename(total_year_obs = value) %>%
-  select(-weight) %>%
-  mutate(subgroup = ifelse(subgroup == "Other", "other", subgroup))
-
-calibration_compare = left_join(calibration_output,
-                                calibration_miami,
-                                by = c("year", "subgroup")) %>%
-  mutate(diff = total_year_sim - total_year_obs)
-
-calibration_compare %>% View()
-score = sum((calibration_compare$diff)^2)
-score
-
-write_csv(calibration_compare, "/Users/ravigoyal/Dropbox/Academic/Research/Projects/ASPIRE/Calibration/miami_calibration_v11.csv")
-
-custom_labels <- c(
-  "MSM" = "MSM",
-  "MSMandIDU" = "MSM and PWID",
-  "IDU" = "PWID",
-  "other" = "Heterosexual"
-)
-
-ggplot(calibration_compare, aes(x = year+2016)) +
-  geom_line(aes(y = total_year_sim, color = "Simulated"), size = 1) +
-  geom_point(aes(y = total_year_obs, color = "Observed"), shape = 3, size = 3) +
-  scale_y_continuous(limits = c(0, 850)) +
-  facet_wrap(~ subgroup, scales = "free_y", labeller = labeller(subgroup = custom_labels)) +
-  labs(
-    title = "Calibration Comparison by Subgroup",
-    x = "Year",
-    y = "Total",
-    color = "Legend"
-  ) +
-  theme_minimal() +
-  theme(
-    legend.position = "bottom",
-    strip.text = element_text(size = 12, face = "bold"),
-    plot.title = element_text(size = 14, face = "bold", hjust = 0.5)
-  )
-
-######
-print(paste("#########sim_iter: ", sim_iter, sep = ""))
 
 diag_time_demo.df = left_join(
   simObj$diag_time %>% filter(event == "diagnosis"),
   bind_rows(simObj$popdf %>% select(id, gender, risk, age, race),
             simObj$popdf_dead),
-                               by = join_by(ID == id))
+  by = join_by(ID == id))
 
 diag_time_demo.df = diag_time_demo.df %>%
   mutate(year = ceiling(month/12)+2018)
@@ -551,7 +108,7 @@ for (excel_file in list.files("/Users/ravigoyal/Dropbox/Academic/Research/Projec
       mutate(input_file = input_file_counter)
 
     diag_time_demo_sum_all_e_i.df = bind_rows(diag_time_demo_sum_all_e_i.df,
-                                                   diag_time_demo_sum_all_e_i_temp.df)
+                                              diag_time_demo_sum_all_e_i_temp.df)
     #}
   }
   input_file_counter = input_file_counter + 1
@@ -576,7 +133,7 @@ for (excel_file in list.files("/Users/ravigoyal/Dropbox/Academic/Research/Projec
       mutate(input_file = input_file_counter)
 
     diag_time_demo_sum_all_e.df = bind_rows(diag_time_demo_sum_all_e.df,
-                                              diag_time_demo_sum_all_e_temp.df)
+                                            diag_time_demo_sum_all_e_temp.df)
     #}
   }
   input_file_counter = input_file_counter + 1
@@ -671,7 +228,7 @@ for (excel_file in list.files("/Users/ravigoyal/Dropbox/Academic/Research/Projec
       mutate(input_file = input_file_counter)
 
     inf_time_demo_sum_all_e_i.df = bind_rows(inf_time_demo_sum_all_e_i.df,
-                                              inf_time_demo_sum_all_e_i_temp.df)
+                                             inf_time_demo_sum_all_e_i_temp.df)
     #}
   }
   input_file_counter = input_file_counter + 1
@@ -696,7 +253,7 @@ for (excel_file in list.files("/Users/ravigoyal/Dropbox/Academic/Research/Projec
       mutate(input_file = input_file_counter)
 
     inf_time_demo_sum_all_e.df = bind_rows(inf_time_demo_sum_all_e.df,
-                                             inf_time_demo_sum_all_e_temp.df)
+                                           inf_time_demo_sum_all_e_temp.df)
     #}
   }
   input_file_counter = input_file_counter + 1
@@ -865,7 +422,7 @@ inf_time_demo_sum_mean_l.df = inf_time_demo_sum_mean_l.df %>%
                           risk == "MSMandIDU" ~ "MSM & IDU",
                           risk == "other" ~ "Other")) %>%
   mutate(Simulation = case_when(type == "epi_reduce" ~ "Sim (E)",
-                          type == "epi_genetic_reduce" ~ "Sim (E+G)"))
+                                type == "epi_genetic_reduce" ~ "Sim (E+G)"))
 
 #####Slide 38
 
@@ -1036,11 +593,11 @@ trans_tree_demo.df %>%
 #saveRDS(simObj, "../results/rw_216months_7_26_22_simObj.rds")
 
 node_list.df = bind_rows(simObj$popdf %>% select(id, gender, risk, age, race),
-          simObj$popdf_dead) %>%
+                         simObj$popdf_dead) %>%
   mutate(gender_short = case_when(gender == "female" ~ "F",
                                   gender == "male" ~ "M")) %>%
   mutate(shape = case_when(gender == "female" ~ "square",
-                                  gender == "male" ~ "diamond")) %>%
+                           gender == "male" ~ "diamond")) %>%
   mutate(race_short = case_when(race == "black" ~ "B",
                                 race == "other" ~ "O",
                                 race == "hispanic" ~ "H")) %>%
@@ -1049,9 +606,9 @@ node_list.df = bind_rows(simObj$popdf %>% select(id, gender, risk, age, race),
                                 risk == "other" ~ "N",
                                 risk == "MSMandIDU" ~ "B")) %>%
   mutate(color = case_when(risk == "IDU" ~ "orange",
-                                risk == "MSM" ~ "green",
-                                risk == "other" ~ "red",
-                                risk == "MSMandIDU" ~ "black")) %>%
+                           risk == "MSM" ~ "green",
+                           risk == "other" ~ "red",
+                           risk == "MSMandIDU" ~ "black")) %>%
   unite("group", c(gender_short, risk_short, race_short), sep= "", remove = TRUE) %>%
   select(id, group, shape, color)
 
@@ -1097,4 +654,3 @@ visLegend(visnet, main="Legend", position="right", ncol=4)
 # diag_time = diag_time %>% mutate(enter_month = (age_at_end - 13)*12)
 # diag_time = diag_time %>% mutate(diag_age = age_at_end - month/12)
 #
-
