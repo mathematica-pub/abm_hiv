@@ -45,6 +45,12 @@ file_loc_link = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/ASPIRE/Cali
 file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/ASPIRE/Results/Incorrect_age/data_MSMincrease.xlsx"
 file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/ASPIRE/Results/Incorrect_age/data_scenario.xlsx"
 
+file_loc_link = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/SD_data/sd_demographics_20240821.csv"
+file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/sd_data_20251115_abmONLY_epigen_O5Y5_statusquo.xlsx"
+file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/HRSA_SanDiego_modeling/sd_data_20251115_abmONLY_epigen_O5Y5_intervention.xlsx"
+
+file_loc_link = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/ASPIRE/ABM_errors/MIA_simulations_Nov2025/Miami_demographics_20250325.csv"
+file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/ASPIRE/ABM_errors/MIA_simulations_Nov2025/Miami_11_05_2025_epigen_O1Y1.xlsx"
 
 
 diag_time_demo_sum_all.df = NULL
@@ -68,6 +74,21 @@ inputObj$valflag  <- FALSE
 tic()
 simObj   <- initialization_module(inputObj)
 toc()
+
+######
+simObj$popdf %>%
+  group_by(race) %>%
+  summarise(n = n())
+
+simObj$popdf %>%
+  filter(race == "black") %>%
+  group_by(stage) %>%
+  summarise(n = n())
+
+simObj$popdf %>%
+  group_by(stage) %>%
+  summarise(n = n())
+######
 
 ######
 # TEMP.df = simObj$negpopdf %>%
@@ -134,8 +155,8 @@ link_county_abm.df %>% is.na() %>% sum()
 
 simData <- data.frame(list())
 
-h_MSM = c()
-source("~/Dropbox/Academic/Research/Projects/ABM_HIV/abm_hiv/testing_networks.R")
+#h_MSM = c()
+#source("~/Dropbox/Academic/Research/Projects/ABM_HIV/abm_hiv/testing_networks.R")
 
 print("Starting simulation...")
 print(paste("Month: ", "0", sep = ""))
@@ -146,62 +167,62 @@ if (simObj$duration < 1) {
   for (i in 1:simObj$duration) {
     tic()
     print(paste("Month: ", i, sep = ""))
-    if (i == 1) {
-      #  simObj$stagetransprobs$hiv$betters[1] = simObj$stagetransprobs$hiv$betters[1]*3
-      #  simObj$stagetransprobs$hiv$bettere[1] = simObj$stagetransprobs$hiv$bettere[1]*3
-
-      gender_risk_order.df = tibble(
-        risk = c("MSM",
-                 "IDU",
-                 "MSMandIDU",
-                 "other",
-                 "IDU",
-                 "other"),
-        gender = c("male", "male", "male", "male", "female", "female"),
-        tests_per_month = c(1359,
-                            85,
-                            106,
-                            490,
-                            70.2,
-                            1229)
-      ) %>% left_join(bind_rows(simObj$popdf, simObj$negpopdf) %>%
-                        group_by(risk, gender) %>%
-                        summarize(risk_pop = n())) %>%
-        mutate(test_prob = tests_per_month/risk_pop)
-
-      simObj$stagetransprobs$hiv$betters = gender_risk_order.df$test_prob
-
-      simObj$stagetransprobs$hiv$bettere = gender_risk_order.df$test_prob
-
-    }
-    if (i == 109) {
-      #  simObj$stagetransprobs$hiv$betters[1] = simObj$stagetransprobs$hiv$betters[1]*3
-      #  simObj$stagetransprobs$hiv$bettere[1] = simObj$stagetransprobs$hiv$bettere[1]*3
-
-      num_tests = c(1359, 85, 106, 490, 70.2, 1229)
-      remove_tests = num_tests*(1-0)
-      add_tests = sum(num_tests) - sum(remove_tests)
-      remove_tests[1] = remove_tests[1] + add_tests
-
-      gender_risk_order.df = tibble(
-        risk = c("MSM",
-                 "IDU",
-                 "MSMandIDU",
-                 "other",
-                 "IDU",
-                 "other"),
-        gender = c("male", "male", "male", "male", "female", "female"),
-        tests_per_month = remove_tests
-      ) %>% left_join(bind_rows(simObj$popdf, simObj$negpopdf) %>%
-                        group_by(risk, gender) %>%
-                        summarize(risk_pop = n())) %>%
-        mutate(test_prob = tests_per_month/risk_pop)
-
-      simObj$stagetransprobs$hiv$betters = gender_risk_order.df$test_prob
-
-      simObj$stagetransprobs$hiv$bettere = gender_risk_order.df$test_prob
-
-    }
+    # if (i == 1) {
+    #   #  simObj$stagetransprobs$hiv$betters[1] = simObj$stagetransprobs$hiv$betters[1]*3
+    #   #  simObj$stagetransprobs$hiv$bettere[1] = simObj$stagetransprobs$hiv$bettere[1]*3
+    #
+    #   gender_risk_order.df = tibble(
+    #     risk = c("MSM",
+    #              "IDU",
+    #              "MSMandIDU",
+    #              "other",
+    #              "IDU",
+    #              "other"),
+    #     gender = c("male", "male", "male", "male", "female", "female"),
+    #     tests_per_month = c(1359,
+    #                         85,
+    #                         106,
+    #                         490,
+    #                         70.2,
+    #                         1229)
+    #   ) %>% left_join(bind_rows(simObj$popdf, simObj$negpopdf) %>%
+    #                     group_by(risk, gender) %>%
+    #                     summarize(risk_pop = n())) %>%
+    #     mutate(test_prob = tests_per_month/risk_pop)
+    #
+    #   simObj$stagetransprobs$hiv$betters = gender_risk_order.df$test_prob
+    #
+    #   simObj$stagetransprobs$hiv$bettere = gender_risk_order.df$test_prob
+    #
+    # }
+    # if (i == 109) {
+    #   #  simObj$stagetransprobs$hiv$betters[1] = simObj$stagetransprobs$hiv$betters[1]*3
+    #   #  simObj$stagetransprobs$hiv$bettere[1] = simObj$stagetransprobs$hiv$bettere[1]*3
+    #
+    #   num_tests = c(1359, 85, 106, 490, 70.2, 1229)
+    #   remove_tests = num_tests*(1-0)
+    #   add_tests = sum(num_tests) - sum(remove_tests)
+    #   remove_tests[1] = remove_tests[1] + add_tests
+    #
+    #   gender_risk_order.df = tibble(
+    #     risk = c("MSM",
+    #              "IDU",
+    #              "MSMandIDU",
+    #              "other",
+    #              "IDU",
+    #              "other"),
+    #     gender = c("male", "male", "male", "male", "female", "female"),
+    #     tests_per_month = remove_tests
+    #   ) %>% left_join(bind_rows(simObj$popdf, simObj$negpopdf) %>%
+    #                     group_by(risk, gender) %>%
+    #                     summarize(risk_pop = n())) %>%
+    #     mutate(test_prob = tests_per_month/risk_pop)
+    #
+    #   simObj$stagetransprobs$hiv$betters = gender_risk_order.df$test_prob
+    #
+    #   simObj$stagetransprobs$hiv$bettere = gender_risk_order.df$test_prob
+    #
+    # }
     simObj <- increment_module(simObj)
     simObj <- transmission_module(simObj)
     simObj <- care_stage_module(simObj)
@@ -212,10 +233,41 @@ if (simObj$duration < 1) {
       simObj <- migration(simObj)
     }
     simData <- bind_rows(simData, collapse_module(simObj))
-    h_MSM = c(h_MSM, homophily_check(simObj))
+    #h_MSM = c(h_MSM, homophily_check(simObj))
     toc()
   }
 }
+
+
+######
+
+popdf_all =   bind_rows(bind_rows(simObj$popdf_dead %>% select(id, gender, risk, age, race, geo),
+                                  simObj$popdf %>% select(id, gender, risk, age, race, geo),
+                                  simObj$popdf_migrate %>% select(id, gender, risk, age, race, geo))) %>%
+  as.data.frame() %>% print(quote = FALSE, row.names = FALSE)
+
+simObj$popdf_migrate %>% View()
+
+######
+simObj$popdf %>%
+  group_by(race) %>%
+  summarise(n = n())
+
+simObj$popdf %>%
+  filter(race == "black") %>%
+  group_by(stage) %>%
+  summarise(n = n())
+
+simObj$popdf %>%
+  group_by(race, stage) %>%
+  summarise(n = n())
+
+simObj$popdf %>%
+  group_by(stage) %>%
+  summarise(n = n())
+
+simObj$popdf %>%
+  count(race, rna)
 
 
 ######
