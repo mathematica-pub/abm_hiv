@@ -72,8 +72,8 @@ migration <- function(simObj) {
     select(colnames(simObj$popdf))
 
   simObj$popdf_migrate = bind_rows(simObj$popdf_migrate,
-                                   popgeo.df %>% select(id, gender, risk, age, race, geo)) %>%
-    mutate(age = age + (simObj$duration - simObj$month)/12)
+                                   popgeo.df %>% select(id, gender, risk, age, race, geo) %>%
+    mutate(age = age + (simObj$duration - simObj$month)/12))
 
   simObj$popdf = simObj$popdf %>%
     filter(id %!in% popgeo.df$id)
