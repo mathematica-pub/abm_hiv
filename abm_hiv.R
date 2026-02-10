@@ -44,7 +44,7 @@ file_loc_link = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/ASPIRE/Cali
 #file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/ASPIRE/Calibration_4_1_2025/miami_data_20241202_O1Y1_epigen_TT.xlsx"
 file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/ASPIRE/Results/Incorrect_age/data_MSMincrease.xlsx"
 file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/ASPIRE/Results/Incorrect_age/data_scenario.xlsx"
-file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/ASPIRE/Miami_10_29_2025.xlsx"
+file_loc_input = "/Users/ravigoyal/Dropbox/Academic/Research/Projects/ASPIRE/RWHAP_analysis/MIA_epigen_O7Y7_calibrated_input_15yrs.xlsx"
 
 
 diag_time_demo_sum_all.df = NULL
@@ -237,6 +237,34 @@ if (simObj$duration < 1) {
       simObj$stagetransprobs$hiv$betters = group_testing.df$test_prob
       simObj$stagetransprobs$hiv$bettere = group_testing.df$test_prob
     }
+
+    # if (simObj$month == 121) {
+    #   #Change in RWHAP
+    #
+    #   #calculate probability
+    #   rwhap_removal_prob = 3600/(simObj$popdf %>%
+    #     filter(stage %in% c("care", "suppress")) %>%
+    #     nrow() %>% sum())
+    #
+    #   #change in current population probability
+    #   simObj$popdf$rhwap_change = rbinom(n = nrow(simObj$popdf), size = 1, prob = rwhap_removal_prob)
+    #   for (hiv_id in c(1:nrow(simObj$popdf))) {
+    #     if (simObj$popdf$rhwap_change[hiv_id] == 1) {
+    #       simObj$popdf$benemcm[hiv_id] = 0
+    #       simObj$popdf$benemhsa[hiv_id] = 0
+    #       simObj$popdf$benesupport[hiv_id] = 0
+    #       simObj$popdf$oahsart[hiv_id] = 0
+    #       if (simObj$popdf$stage %in% c("care", "suppress")) {
+    #         simObj$popdf$stage[hiv_id] = "left"
+    #       }
+    #     }
+    #   }
+    #
+    #   #change in current population stage
+    #
+    #   #change in future population probability
+    #
+    # }
 
     simObj <- transmission_module(simObj)
     simObj <- care_stage_module(simObj)
